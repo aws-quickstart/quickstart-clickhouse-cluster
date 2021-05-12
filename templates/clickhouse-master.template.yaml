@@ -130,12 +130,18 @@ Outputs:
     Value: !GetAtt VPCStack.Outputs.S3VPCEndpoint
 Rules:
   RegionValid:
+    RuleCondition: !Or 
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-north-1
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-northwest-1
     Assertions:
-      - Assert: !Contains 
-          - - 'cn-'
-          - !Ref QSS3BucketRegion
-        AssertDescription: "Valid QSS3BucketRegion."
-    RuleCondition: !Contains
-      - !Sub '${AWS::Region}'
-      - 'cn-'
+      - Assert: 
+          'Fn::Contains':
+            - - 'cn-north-1'
+              - 'cn-northwest-1'
+            - !Ref QSS3BucketRegion
+        AssertDescription: ''
 ...
