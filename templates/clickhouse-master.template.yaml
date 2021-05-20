@@ -224,6 +224,26 @@ Resources:
                 - UsingDefaultBucket
                 - !Sub '${QSS3BucketName}-${AWS::Region}'
                 - !Ref QSS3BucketName
+  SecurityGroupStack:
+    DependsOn: BastionStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: 
+        Fn::Sub:
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/securitygroups.template.yaml
+          - S3Region: !If 
+              - UsingDefaultBucket
+              - !Ref 'AWS::Region'
+              - !Ref QSS3BucketRegion
+            S3Bucket: !If 
+              - UsingDefaultBucket
+              - !Sub '${QSS3BucketName}-${AWS::Region}'
+              - !Ref QSS3BucketName
+      Parameters:
+        AccessCIDR: !Ref AccessCIDR
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        VPCCIDR: !GetAtt VPCStack.Outputs.VPCCIDR
+        BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
 Outputs:
   VPCCIDR:
     Description: The VPCCIDR for DW vpc
