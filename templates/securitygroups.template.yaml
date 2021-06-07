@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: Clickhouse Security Groups template
+Description: (SO8019) - This template is used for setting up Security Groups
 Parameters:
   AccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
@@ -27,6 +27,14 @@ Resources:
       GroupDescription: Allow access to ClickHouse Port 
       VpcId: !Ref VPCID
       SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 2181
+        ToPort: 2181
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 9000
+        ToPort: 9000
+        CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
         FromPort: 8123
         ToPort: 8123
