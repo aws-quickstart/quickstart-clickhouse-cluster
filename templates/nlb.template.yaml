@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: (SO8019) - This stack deploys NLB for ClickHouse cluster
+
+Parameters:
+  VPCID:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC in which ELB & Webserver will be placed.
+  
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnets in which ELB will be created. Select all AZs/Subnet.
+
+  NodeCount:
+    Type: String
+    Default: 2
+  
+  EC2Instance1:
+    Type: AWS::EC2::Instance::Id
+    Description: Choose EC2 instance.
+  
+  EC2Instance2:
+    Type: AWS::EC2::Instance::Id
+    Description: Choose EC2 instance.
+  
+  EC2Instance3:
+    Type: AWS::EC2::Instance::Id
+    Default: ''
+    Description: Choose EC2 instance.
+  
+  EC2Instance4:
+    Type: AWS::EC2::Instance::Id
+    Default: ''
+    Description: Choose EC2 instance.
+Conditions:
+  4NodesCondition: !Equals [!Ref 'NodeCount', '4'] 
+  6NodesCondition: !Equals [!Ref 'NodeCount', '6'] 
+  8NodesCondition: !Equals [!Ref 'NodeCount', '8']  
+Resources:
+  ServiceLoadBalancerPrivate:
+        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+        Properties:
+           Name: !Sub ${AWS::StackName}-Nlb
+           Scheme: internet-facing
+           Subnets: !Ref Subnets
+           Type: network
+           IpAddressType: ipv4
+           Tags:
+           - Key: Name
+             Value: !Sub ${AWS::StackName}-Nlb
+  
+  # A default target group is used to setup the Nlb to just drop traffic
+  # initially, before any real service target groups have been added.
+  NetworkLoadBalancerTargetGroup4Nodes:
+    Condition: 4NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+        Name: networklb-target
+        Port: 9000
+        Protocol: TCP
+        VpcId: !Ref VPCID
+        Targets:
+        - Id: !Ref EC2Instance1
+          Port: 9000  
+        - Id: !Ref EC2Instance2
+          Port: 9000  
+
+  ServiceLoadBalancerListener4Nodes:
+    Condition: 4NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+        LoadBalancerArn: !Ref ServiceLoadBalancerPrivate
+        Port: 9000  
+        Protocol: TCP
+        DefaultActions:
+           - Type: forward
+             TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup4Nodes
+
+  NetworkLoadBalancerTargetGroup6Nodes:
+    Condition: 6NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+        Name: networklb-target
+        Port: 9000
+        Protocol: TCP
+        VpcId: !Ref VPCID
+        Targets:
+        - Id: !Ref EC2Instance1
+          Port: 9000  
+        - Id: !Ref EC2Instance2
+          Port: 9000 
+        - Id: !Ref EC2Instance3
+          Port: 9000  
+
+  ServiceLoadBalancerListener6Nodes:
+    Condition: 6NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+        LoadBalancerArn: !Ref ServiceLoadBalancerPrivate
+        Port: 9000  
+        Protocol: TCP
+        DefaultActions:
+           - Type: forward
+             TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup6Nodes
+
+  NetworkLoadBalancerTargetGroup8Nodes:
+    Condition: 8NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+        Name: networklb-target
+        Port: 9000
+        Protocol: TCP
+        VpcId: !Ref VPCID
+        Targets:
+        - Id: !Ref EC2Instance1
+          Port: 9000  
+        - Id: !Ref EC2Instance2
+          Port: 9000 
+        - Id: !Ref EC2Instance3
+          Port: 9000  
+        - Id: !Ref EC2Instance4
+          Port: 9000  
+
+  ServiceLoadBalancerListener8Nodes:
+    Condition: 8NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+        LoadBalancerArn: !Ref ServiceLoadBalancerPrivate
+        Port: 9000  
+        Protocol: TCP
+        DefaultActions:
+           - Type: forward
+             TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup8Nodes
+Outputs:
+  ElbDNSName: !!GetAtt ServiceLoadBalancerPrivate.DNSName

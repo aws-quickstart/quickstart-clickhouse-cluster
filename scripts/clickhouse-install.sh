@@ -350,7 +350,7 @@ echo "</yandex>" >> /etc/clickhouse-server/config.d/macros.xml
 sudo systemctl start clickhouse-server
 
 #################################         Monitor         ##################################
-# installclickhouse_exporter  
+# install clickhouse_exporter  
 sudo yum install -y go
 sudo yum install -y git
 
