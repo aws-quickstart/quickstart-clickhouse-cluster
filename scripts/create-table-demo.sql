@@ -115,4 +115,4 @@ CREATE TABLE `ontime_replica`
       SETTINGS storage_policy = 'tiered', index_granularity = 8192;
 
 CREATE TABLE ontime as ontime_replica
-ENGINE = Distributed(ch_cluster_demo, default, ontime_replica, rand());
+ENGINE = Distributed(quickstart_clickhouse_cluster, default, ontime_replica, rand());

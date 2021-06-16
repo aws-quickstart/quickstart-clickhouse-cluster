@@ -7,18 +7,18 @@ EOF
 sudo usermod -G clickhouse clickhouse
 
 # If one disk only, use root disk
-sudo mkdir -p /home/clickhouse/data
+mkdir -p /home/clickhouse/data
 
-sudo mkdir /home/clickhouse/data/format_schemas/
-sudo mkdir /home/clickhouse/data/access/
-sudo mkdir /home/clickhouse/data/user_files/
-sudo mkdir /home/clickhouse/data/tmp/
-sudo mkdir /home/clickhouse/data/clickhouse-data/
+mkdir /home/clickhouse/data/format_schemas/
+mkdir /home/clickhouse/data/access/
+mkdir /home/clickhouse/data/user_files/
+mkdir /home/clickhouse/data/tmp/
+mkdir /home/clickhouse/data/clickhouse-data/
 
-sudo mkdir -p /home/clickhouse/data/lib
+mkdir -p /home/clickhouse/data/lib
 ln -s /home/clickhouse/data/lib /var/lib/clickhouse
-sudo chown -R clickhouse /home/clickhouse/
-sudo chown -R clickhouse /var/lib/clickhouse/
+chown -R clickhouse /home/clickhouse/
+chown -R clickhouse /var/lib/clickhouse/
 
 cd /var/lib/clickhouse/
 wget https://apt.llvm.org/llvm.sh
@@ -40,15 +40,15 @@ tar -xzvf clickhouse-client-$1.tgz
 tar -xzvf clickhouse-server-$1.tgz
 find /var/lib/clickhouse/clickhouse-server-$1/install/ -name 'doinst.sh' | xargs perl -pi -e  "s|done|done;rm -f /usr/bin/clickhouse-*;cp -r -f /var/lib/clickhouse/ClickHouse/build-arm64/programs/clickhouse-* /usr/bin/|g"
 
-sudo chmod +x clickhouse-client-$1/install/doinst.sh
-sudo chmod +x clickhouse-server-$1/install/doinst.sh
+chmod +x clickhouse-client-$1/install/doinst.sh
+chmod +x clickhouse-server-$1/install/doinst.sh
 
 mkdir -p /var/log/clickhouse-server
-sudo chown clickhouse.clickhouse -R /var/log/clickhouse-server
-sudo chown clickhouse.clickhouse -R /var/lib/clickhouse
+chown clickhouse.clickhouse -R /var/log/clickhouse-server
+chown clickhouse.clickhouse -R /var/lib/clickhouse
 
-sudo clickhouse-client-$1/install/doinst.sh
-sudo clickhouse-server-$1/install/doinst.sh
+clickhouse-client-$1/install/doinst.sh
+clickhouse-server-$1/install/doinst.sh
 
 echo "<yandex>" >> /etc/clickhouse-server/metrika.xml
 echo "<clickhouse_remote_servers>" >> /etc/clickhouse-server/metrika.xml
@@ -265,6 +265,9 @@ then
     done
 fi
 
+sed -i '508, 617d' /etc/clickhouse-server/config.xml
+find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  's|<!--</remote_url_allow_hosts>-->|<!--</remote_url_allow_hosts>--><include_from>/etc/clickhouse-server/metrika.xml</include_from><remote_servers incl="clickhouse_remote_servers" /><zookeeper incl="zookeeper-servers" optional="true" />|g'
+
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<level>trace</level>|<level>information</level>|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<log>/var/log/clickhouse-server/clickhouse-server.log</log>|<log>/home/clickhouse/data/log/clickhouse-server.log</log>|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>|<errorlog>/home/clickhouse/data/log/clickhouse-server.err.log</errorlog>|g"
@@ -272,7 +275,6 @@ find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<path>/v
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|/var/lib/clickhouse/|/home/clickhouse/data/|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<!-- <timezone>Europe/Moscow</timezone> -->|<timezone>$7</timezone>|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<!-- <listen_host>0.0.0.0</listen_host> -->|<listen_host>0.0.0.0</listen_host>|g"
-find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|</remote_url_allow_hosts>|</remote_url_allow_hosts><include_from>/etc/clickhouse-server/metrika.xml</include_from>|g"
 
 find /etc/clickhouse-server/ -name 'users.xml' | xargs perl -pi -e  "s|<password></password>|<password>${11}</password>|g"
 sudo sed -i "9a <max_threads>${12}</max_threads>" /etc/clickhouse-server/users.xml
@@ -307,13 +309,13 @@ echo "          </s3>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        </volumes>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        <move_factor>$6</move_factor>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "      </tiered>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "      <s3>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "      <s3only>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        <volumes>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "          <main>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "          <s3>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "            <disk>s3</disk>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "          </main>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "          </s3>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        </volumes>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "      </s3>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "      </s3only>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "    </policies>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "  </storage_configuration>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "</yandex>" >> /etc/clickhouse-server/config.d/storage.xml
@@ -326,6 +328,16 @@ echo "        <layer>01</layer>" >> /etc/clickhouse-server/config.d/macros.xml
 echo "    </macros>" >> /etc/clickhouse-server/config.d/macros.xml
 echo "</yandex>" >> /etc/clickhouse-server/config.d/macros.xml
 
-sudo chown -R clickhouse.clickhouse /home/clickhouse/
-sudo chown -R clickhouse.clickhouse /etc/clickhouse-server/
-sudo systemctl start clickhouse-server
+chown -R clickhouse.clickhouse /home/clickhouse/
+chown -R clickhouse.clickhouse /etc/clickhouse-server/
+
+systemctl stop clickhouse-server
+systemctl start clickhouse-server
+systemctl status clickhouse-server
+
+# Restart ClickHouse
+sleep 5
+systemctl stop clickhouse-server
+systemctl start clickhouse-server
+systemctl status clickhouse-server
+sleep 1

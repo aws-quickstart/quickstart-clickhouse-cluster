@@ -1,10 +1,78 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: (SO8019) - This template is used for setting up a Zookeeper cluster
+Description: (SO8019) - This template is used for setting up a Zookeeper cluster. (qs-xxxxxxxxx)
 
+Metadata:
+  LICENSE: Apache License Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network Configuration
+      Parameters:
+      - PrivateSubnetID
+    - Label:
+        default: EC2 Configuration
+      Parameters:
+      - ZookeeperServerSecurityGroupID
+      - KeyPairName
+    - Label:
+        default: Zookeeper Configuration
+      Parameters:
+      - ZookeeperNodeName1
+      - ZookeeperNodeName2
+      - ZookeeperNodeName3
+      - ZookeeperInstanceType
+      - ZookeeperVersion
+      - ZookeeperNodeCount
+      - CloudWatchAgentURL
+      - RootStackName
+      - DeviceName
+      - VolumeSize
+      - VolumeType
+      - Iops
+      - InstanceRoleArn
+    - Label:
+        default: AWS Quick Start Configuration
+      Parameters:
+      - QSS3BucketName
+      - QSS3KeyPrefix
+    ParameterLabels:
+      PrivateSubnetID:
+        default: Private subnet ID
+      ZookeeperServerSecurityGroupID:
+        default: Zookeeper Server security group
+      KeyPairName:
+        default: Key pair Name
+      ZookeeperNodeName1:
+        default: Zookeeper node name 1
+      ZookeeperNodeName2:
+        default: Zookeeper node name 2
+      ZookeeperNodeName3:
+        default: Zookeeper node name 3
+      ZookeeperInstanceType:
+        default: Zookeeper instance type
+      ZookeeperVersion:
+        default: Zookeeper version
+      ZookeeperNodeCount:
+        default: Zookeeper node count
+      CloudWatchAgentURL:
+        default: CloudWatch agent URL
+      RootStackName:
+        default: Prefix name of Zookeeper cluster
+      DeviceName:
+        default: Device name
+      VolumeSize:
+        default: Volume size
+      VolumeType:
+        default: Volume type
+      Iops:
+        default: IOPS
+      InstanceRoleArn:
+        default: Instance role arn for aws or aws-cn
+      QSS3BucketName:
+        default: S3 bucket name for the Quick Start assets
+      QSS3KeyPrefix:
+        default: S3 key prefix for the Quick Start assets
 Parameters: 
-  VPCID:
-    Description: VPC ID
-    Type: AWS::EC2::VPC::Id
   PrivateSubnetID: 
     Description: Private Subnet Id
     Type: String
@@ -16,12 +84,15 @@ Parameters:
     Description: Public/private key pairs allow you to securely connect to your instance after it launches
   ZookeeperNodeName1: 
     Default: ZookeeperNode1
+    Description: Zookeeper node name 1
     Type: String
   ZookeeperNodeName2:
     Default: ZookeeperNode2
+    Description: Zookeeper node name 2
     Type: String
   ZookeeperNodeName3:
     Default: ZookeeperNode3
+    Description: Zookeeper node name 3
     Type: String
   ZookeeperInstanceType: 
     Description: Amazon EC2 instance type for the Zookeeper nodes.
@@ -65,12 +136,14 @@ Parameters:
     Type: String
   ZookeeperNodeCount:
     Default: 3
+    Description: Zookeeper node count
     Type: Number
   CloudWatchAgentURL:
     Description: For each download link, you can download and install the CloudWatch agent using the command line
     Type: String
   RootStackName:
     Type: String
+    Description: Prefix name of Zookeeper cluster
   DeviceName:
     Description: The device name (for example, /dev/sdh or xvdh)
     Type: String
@@ -314,7 +387,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -325,10 +398,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -362,6 +435,7 @@ Resources:
 
             cd /home/ec2-user/
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/zookeeper-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-zookeeper-node.py ./ --region ${AWS::Region}
             chmod +x zookeeper-install.sh
             ./zookeeper-install.sh ${ZookeeperVersion} > zk.log
 
@@ -375,11 +449,11 @@ Resources:
               count=`awk -v RS="@#$j" '{print gsub(/instance/,"&")}' instancelist`
               if (( $count >= ${ZookeeperNodeCount} ))
               then
-                echo "found ${ZookeeperNodeCount} zk" > result
+                python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
-                done < instancelist
+                done < result
                 break
               fi
               echo $flag
@@ -387,6 +461,11 @@ Resources:
               sleep 1
             done
 
+            echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
+            chmod +x /home/ec2-user/zk-start.sh
+            echo "/home/ec2-user/zk-start.sh" >> /etc/rc.d/rc.local
+            chmod +x /etc/rc.d/rc.local
+            
             /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ZookeeperInstance1 --region ${AWS::Region}
@@ -544,7 +623,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -555,10 +634,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -592,6 +671,7 @@ Resources:
 
             cd /home/ec2-user/
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/zookeeper-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-zookeeper-node.py ./ --region ${AWS::Region}
             chmod +x zookeeper-install.sh
             ./zookeeper-install.sh ${ZookeeperVersion} > zk.log
 
@@ -605,17 +685,22 @@ Resources:
               count=`awk -v RS="@#$j" '{print gsub(/instance/,"&")}' instancelist`
               if (( $count >= ${ZookeeperNodeCount} ))
               then
-                echo "found ${ZookeeperNodeCount} zk" > result
+                python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
-                done < instancelist
+                done < result
                 break
               fi
               echo $flag
               let flag--
               sleep 1
             done
+
+            echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
+            chmod +x /home/ec2-user/zk-start.sh
+            echo "/home/ec2-user/zk-start.sh" >> /etc/rc.d/rc.local
+            chmod +x /etc/rc.d/rc.local
 
             /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start
 
@@ -774,7 +859,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -785,10 +870,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -823,6 +908,7 @@ Resources:
 
             cd /home/ec2-user/
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/zookeeper-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-zookeeper-node.py ./ --region ${AWS::Region}
             chmod +x zookeeper-install.sh
             ./zookeeper-install.sh ${ZookeeperVersion} > zk.log
 
@@ -837,17 +923,22 @@ Resources:
               count=`awk -v RS="@#$j" '{print gsub(/instance/,"&")}' instancelist`
               if (( $count >= ${ZookeeperNodeCount} ))
               then
-                echo "found ${ZookeeperNodeCount} zk" > result
+                python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
-                done < instancelist
+                done < result
                 break
               fi
               echo $flag
               let flag--
               sleep 1
             done
+
+            echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
+            chmod +x /home/ec2-user/zk-start.sh
+            echo "/home/ec2-user/zk-start.sh" >> /etc/rc.d/rc.local
+            chmod +x /etc/rc.d/rc.local
 
             /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start
 

@@ -1,11 +1,154 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: (SO8019) - This template is used for setting up a ClickHouse cluster on Graviton2
+Description: (SO8019) - This template is used for setting up a ClickHouse cluster on Graviton2. (qs-xxxxxxxxx)
 
+Metadata:
+  LICENSE: Apache License Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network Configuration
+      Parameters:
+      - PublicSubnetID1
+      - PrivateSubnetID1
+      - PrivateSubnetID2
+    - Label:
+        default: EC2 Configuration
+      Parameters:
+      - KeyPairName
+      - ClickHouseServerSecurityGroup
+      - AdminServerSecurityGroup
+    - Label:
+        default: ClickHouse Configuration
+      Parameters:
+      - ClickHouseNodeName1
+      - ClickHouseNodeName2
+      - ClickHouseNodeName3
+      - ClickHouseNodeName4
+      - ClickHouseNodeName5
+      - ClickHouseNodeName6
+      - ClickHouseNodeName7
+      - ClickHouseNodeName8
+      - ClickHouseInstanceType
+      - ClickHouseVersion
+      - ClickHouseTimezone
+      - ClickHouseNodeCount
+      - DBPassword
+      - ClickHouseBucketName
+      - MoveFactor
+      - RootStackName
+      - DeviceName
+      - VolumeSize
+      - VolumeType
+      - Iops
+      - MaxThreads
+      - MaxMemoryUsage
+      - MaxInsertThreads
+      - DistributedProductMode
+      - LoadBalancing
+      - MaxDataPartSize
+      - DemoDataSize
+      - ZookeeperPrivateIp1
+      - ZookeeperPrivateIp2
+      - ZookeeperPrivateIp3
+      - InstanceRoleArn
+    - Label:
+        default: ClickHouse operation Configuration
+      Parameters:
+      - GrafanaVersion
+      - CloudWatchAgentURL
+    - Label:
+        default: AWS Quick Start Configuration
+      Parameters:
+      - QSS3BucketName
+      - QSS3KeyPrefix
+    ParameterLabels:
+      PublicSubnetID1:
+        default: Public subnet ID 1
+      PrivateSubnetID1:
+        default: Private subnet ID 1
+      PrivateSubnetID2:
+        default: Private subnet ID 2
+      KeyPairName:
+        default: Key pair name
+      ClickHouseServerSecurityGroup:
+        default: ClickHouse Server security group
+      AdminServerSecurityGroup:
+        default: ClickHouse Admin Server security group
+      ClickHouseNodeName1:
+        default: ClickHouse node name 1
+      ClickHouseNodeName2:
+        default: ClickHouse node name 2
+      ClickHouseNodeName3:
+        default: ClickHouse node name 3
+      ClickHouseNodeName4:
+        default: ClickHouse node name 4
+      ClickHouseNodeName5:
+        default: ClickHouse node name 5
+      ClickHouseNodeName6:
+        default: ClickHouse node name 6
+      ClickHouseNodeName7:
+        default: ClickHouse node name 7
+      ClickHouseNodeName8:
+        default: ClickHouse node name 8
+      ClickHouseInstanceType:
+        default: ClickHouse instance type
+      ClickHouseVersion:
+        default: ClickHouse version
+      ClickHouseTimezone:
+        default: ClickHouse timezone
+      ClickHouseNodeCount:
+        default: Number of ClickHouse nodes
+      DBPassword:
+        default: DB password
+      ClickHouseBucketName:
+        default: ClickHouse bucket name
+      MoveFactor:
+        default: Move factor
+      RootStackName:
+        default: Prefix name of ClickHouse cluster
+      DeviceName:
+        default: Device name of ClickHouse nodes
+      VolumeType:
+        default: Volume type of ClickHouse nodes
+      VolumeSize:
+        default: Volume size of ClickHouse nodes
+      Iops:
+        default: IOPS of ClickHouse nodes
+      DistributedProductMode:
+        default: Distributed product mode
+      LoadBalancing:
+        default: Load balancing
+      MaxDataPartSize:
+        default: Max data part size
+      MaxInsertThreads:
+        default: Max insert threads
+      MaxMemoryUsage:
+        default: Max memory usage
+      MaxThreads:
+        default: Max threads
+      DemoDataSize:
+        default: Demo data size
+      GrafanaVersion:
+        default: Grafana version
+      ZookeeperPrivateIp1:
+        default: Zookeeper private Ip 1
+      ZookeeperPrivateIp2:
+        default: Zookeeper private Ip 2
+      ZookeeperPrivateIp3:
+        default: Zookeeper private Ip 3
+      CloudWatchAgentURL:
+        default: CloudWatch agent URL
+      InstanceRoleArn:
+        default: Instance role arn for aws or aws-cn
+      QSS3BucketName:
+        default: AWS Quick Start S3 bucket name
+      QSS3KeyPrefix:
+        default: AWS Quick Start S3 key prefix
 Parameters: 
-  VPCID:
-    Description: VPC ID
-    Type: AWS::EC2::VPC::Id
+  PublicSubnetID1: 
+    Description: Public Subnet 1 Id
+    Type: String
   PrivateSubnetID1: 
     Description: Private Subnet 1 Id
     Type: String
@@ -13,34 +156,45 @@ Parameters:
     Description: Private Subnet 2 Id
     Type: String
   ClickHouseServerSecurityGroup: 
-    Description: ID of the ClickHouse Server Access Security Group (e.g., sg-7f16e910)
+    Description: ID of the ClickHouse Server Access Security Group (e.g., sg-xxxxxxxx)
+    Type: AWS::EC2::SecurityGroup::Id
+  AdminServerSecurityGroup:
+    Description: ID of the ClickHouse Administrator Server Access Security Group (e.g., sg-xxxxxxxx)
     Type: AWS::EC2::SecurityGroup::Id
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public/private key pairs allow you to securely connect to your instance after it launches
   ClickHouseNodeName1:
     Default: ClickHouseNode1 
+    Description: ClickHouse node name 1
     Type: String
   ClickHouseNodeName2: 
     Default: ClickHouseNode2
+    Description: ClickHouse node name 2
     Type: String
   ClickHouseNodeName3:
     Default: ClickHouseNode3 
+    Description: ClickHouse node name 3
     Type: String
   ClickHouseNodeName4: 
     Default: ClickHouseNode4
+    Description: ClickHouse node name 4
     Type: String
   ClickHouseNodeName5:
     Default: ClickHouseNode5 
+    Description: ClickHouse node name 5
     Type: String
   ClickHouseNodeName6: 
     Default: ClickHouseNode6
+    Description: ClickHouse node name 6
     Type: String
   ClickHouseNodeName7:
     Default: ClickHouseNode7 
+    Description: ClickHouse node name 7
     Type: String
   ClickHouseNodeName8: 
     Default: ClickHouseNode8
+    Description: ClickHouse node name 8
     Type: String
   ClickHouseInstanceType: 
     Description: Amazon EC2 instance type for the ClickHouse nodes.
@@ -52,20 +206,20 @@ Parameters:
       - r6gd.4xlarge
       - r6gd.8xlarge
   ClickHouseVersion:
-    Description: ClickHouse Stable Version (20.12.5)
-    Default: 20.12.5.18
+    AllowedValues:
+    - '21.4.5.46-2'
+    - '21.5.5.12-2'
+    Default: '21.4.5.46-2'
+    Description: ClickHouse Version (21.4.5 or 21.5.5)
     Type: String
-    AllowedValues: 
-      - 20.12.5.18
-      - 20.12.6.29
-      - 20.12.7.3
-      - 20.12.8.5
   ClickHouseTimezone:
     Default: Asia/Shanghai
+    Description: ClickHouse Timezone
     Type: String
   ClickHouseNodeCount:
     Default: 2
     Type: Number
+    Description: ClickHouse node count
     AllowedValues: 
       - 2
       - 4
@@ -73,15 +227,19 @@ Parameters:
       - 8
   DBPassword:
     Default: Qwerty
+    Description: ClickHouse database password
     Type: String
   ClickHouseBucketName:
     Default: clickhouse-data
+    Description: ClickHouse bucket name
     Type: String
   MoveFactor:
     Default: 0.3
+    Description: Tiered storage parameter
     Type: String
   RootStackName:
     Default: quickstart-clickhouse-cluster
+    Description: Prefix name of the ClickHouse cluster
     Type: String
   DeviceName:
     Description: The device name (for example, /dev/sdh or xvdh)
@@ -158,6 +316,10 @@ Parameters:
     Default: '1073741824'
     Description: max_data_part_size_bytes for clickhouse Default storage.xml //  Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
     Type: String
+  GrafanaVersion:
+    Default: 8.0.1-1
+    Description: Grafana dashboards give insightful meaning to data collected from ClickHouse
+    Type: String
   DemoDataSize:
     AllowedValues:
     - 'none'
@@ -167,25 +329,15 @@ Parameters:
     Default: 'small'
     Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g
     Type: String
-  PrometheusVersion:
-    AllowedValues:
-    - '2.27.0'
-    - '2.19.0'
-    Default: '2.19.0'
-    Description:  Deploy the Prometheus version to monitor Clickhouse 
-    Type: String
-  GrafanaVersion:
-    AllowedValues:
-    - '7.5.6-1'
-    Default: '7.5.6-1'
-    Description:  Deploy the grafana version to monitor Clickhouse 
-    Type: String
   ZookeeperPrivateIp1:
     Type: String
+    Description: Zookeeper private Ip 1
   ZookeeperPrivateIp2:
     Type: String
+    Description: Zookeeper private Ip 2
   ZookeeperPrivateIp3:
     Type: String
+    Description: Zookeeper private Ip 3
   CloudWatchAgentURL:
     Description: For each download link, you can download and install the CloudWatch agent using the command line
     Type: String
@@ -212,30 +364,6 @@ Parameters:
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slashes (/).
     Type: String
-  CHproxyCacheSize:
-    AllowedValues:
-    - 500Mb
-    - 1Gb
-    - 10Gb
-    Description:  Cached responses will be stored in CHproxy.Maximum cache Size.
-    Default: 500Mb
-    Type: String
-  CHproxyCacheExpire:
-    AllowedValues:
-    - 120s
-    - 600s
-    - 6000s
-    Default: 600s
-    Type: String
-    Description: (h)Expiration time for cached responses.
-  CHproxyDistributedUserPassword:
-    Description:  Chproxy will configure Distributed/replica split users. Password of the CHproxy Distributed User Default
-    Type: String
-    Default: read
-  CHproxyReplicaUserPassword:
-    Description:  Chproxy will configure Distributed/replica split users. Password of the CHproxy Replica User Default 
-    Type: String
-    Default: write
 Mappings:
   AWSRegion2AMI:
     us-east-1:
@@ -447,7 +575,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -458,19 +586,20 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
       ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       InstanceType: !Ref ClickHouseInstanceType
-      SubnetId: !Ref PrivateSubnetID1
+      SubnetId: !Ref PublicSubnetID1
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
+      - !Ref AdminServerSecurityGroup
       BlockDeviceMappings:
       - DeviceName: !Ref DeviceName
         Ebs:
@@ -549,6 +678,54 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-admin,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             
+            # install grafana 
+            mkdir -p /home/ec2-user/tools/install/
+            cd /home/ec2-user/tools/install/
+            mkdir /home/ec2-user/tools/install/grafana
+
+            wget https://dl.grafana.com/oss/release/grafana-${GrafanaVersion}.x86_64.rpm
+            sudo yum install grafana-${GrafanaVersion}.x86_64.rpm -y
+            sleep 1
+
+            sudo grafana-cli plugins install vertamedia-clickhouse-datasource
+            find /etc/grafana/ -name 'grafana.ini' | xargs perl -pi -e  "s|;admin_password = admin|;admin_password = ${DBPassword}|g"
+            sudo systemctl stop grafana-server
+            sudo systemctl start grafana-server
+            sleep 1
+            sudo systemctl status grafana-server
+
+            # demo data
+            if [ ${DemoDataSize} = small ]; then
+                ontimefrom=1988
+                ontimeto=1989
+            elif [ ${DemoDataSize} = medium ]; then
+                ontimefrom=1988
+                ontimeto=1995
+            elif [ ${DemoDataSize} = large ]; then
+                ontimefrom=1988
+                ontimeto=2010
+            elif [ ${DemoDataSize} = no ]; then
+                ontimefrom=0
+                ontimeto=0
+            else
+                echo "Parameters not found or inaccessible."
+            fi
+
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/downloaddata.sh ./ --region ${AWS::Region}
+            mkdir -pv /home/ec2-user/tools/install/demodata
+            cd /home/ec2-user/tools/install/demodata
+            mv /home/ec2-user/downloaddata.sh .
+
+            sed -i "s|ontimefrom|$ontimefrom|" /home/ec2-user/tools/install/demodata/downloaddata.sh
+            sed -i "s|ontimeto|$ontimeto|" /home/ec2-user/tools/install/demodata/downloaddata.sh
+
+            chmod +x /home/ec2-user/tools/install/demodata/downloaddata.sh 
+            ./downloaddata.sh 
+            sleep 1
+
+            ls -1 *.zip | xargs -I{} -P $(nproc) bash -c "echo {}; unzip -cq {} '*.csv' | sed 's/\.00//g' | clickhouse-client --host $node1 --password $2 --input_format_with_names_use_header=0 --query='INSERT INTO ontime FORMAT CSVWithNames'"
+            sleep 1
+
             cfn-signal -e $? --stack=${AWS::StackId} --resource=ArmAdminInstance --region=${AWS::Region}
       Tags:
       - Key: Name
@@ -705,7 +882,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -716,10 +893,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -775,7 +952,24 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance1 --region ${AWS::Region}
       Tags:
@@ -933,7 +1127,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -944,10 +1138,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -1003,7 +1197,24 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance2 --region ${AWS::Region}
       Tags:
@@ -1161,7 +1372,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -1172,10 +1383,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -1232,7 +1443,24 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance3 --region ${AWS::Region}
       Tags:
@@ -1390,7 +1618,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -1401,10 +1629,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -1461,7 +1689,24 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance4 --region ${AWS::Region}
       Tags:
@@ -1619,7 +1864,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -1630,10 +1875,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -1690,7 +1935,24 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region} 
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance5 --region ${AWS::Region}
       Tags:
@@ -1848,7 +2110,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -1859,10 +2121,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -1919,7 +2181,24 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region}
       Tags:
@@ -2077,7 +2356,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -2088,10 +2367,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -2148,7 +2427,24 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance7 --region ${AWS::Region}
       Tags:
@@ -2306,7 +2602,7 @@ Resources:
                owner: root
                group: root
              "/lib/systemd/system/cfn-hup.service":
-                content: !Sub |
+                content: |
                   [Unit]
                   Description=cfn-hup daemon
                   [Service]
@@ -2317,10 +2613,10 @@ Resources:
                   WantedBy=multi-user.target
           commands:
             01enable_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl enable cfn-hup.service
             02start_cfn_hup:
-              command: !Sub |
+              command: |
                 systemctl start cfn-hup.service
     Properties:
       KeyName: !Ref KeyPairName
@@ -2377,7 +2673,24 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region}
       Tags:
@@ -2389,14 +2702,18 @@ Resources:
         Timeout: "PT60M"
 Outputs:
   ClickHouseInstanceID1:
+    Condition: 2NodesCondition
     Description: ClickHouse instance
     Value: !Ref ClickHouseInstance1
   ClickHousePrivateIp1:
+    Condition: 2NodesCondition
     Value: !GetAtt ClickHouseInstance1.PrivateIp
   ClickHouseInstanceID2:
+    Condition: 2NodesCondition
     Description: ClickHouse instance
     Value: !Ref ClickHouseInstance2
   ClickHousePrivateIp2:
+    Condition: 2NodesCondition
     Value: !GetAtt ClickHouseInstance2.PrivateIp
   ClickHouseInstanceID3:
     Condition: 4NodesCondition

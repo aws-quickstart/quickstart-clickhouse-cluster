@@ -1,6 +1,27 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: (SO8019) - This template is used for setting up Security Groups
+Description: (SO8019) - This template is used for setting up Security Groups. (qs-xxxxxxxxx)
+
+Metadata:
+  LICENSE: Apache License Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network Configuration
+      Parameters:
+      - AccessCIDR
+      - VPCID
+      - VPCCIDR
+      - BastionSecurityGroupID
+    ParameterLabels:
+      AccessCIDR:
+        default: Access CIDR
+      VPCID:
+        default: VPC ID
+      VPCCIDR:
+        default: VPC CIDR
+      BastionSecurityGroupID:
+        default: Bastion Security Group ID
 Parameters:
   AccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
@@ -30,6 +51,14 @@ Resources:
       - IpProtocol: tcp
         FromPort: 2181
         ToPort: 2181
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 2888
+        ToPort: 2888
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 3888
+        ToPort: 3888
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
         FromPort: 9000
@@ -73,11 +102,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: 3000
         ToPort: 3000
-        CidrIp: !Ref AccessCIDR
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        CidrIp: !Ref AccessCIDR       
+        CidrIp: !Ref AccessCIDR  
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 0

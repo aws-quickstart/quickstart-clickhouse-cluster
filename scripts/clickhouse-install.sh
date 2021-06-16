@@ -37,12 +37,10 @@ sudo chown -R clickhouse.clickhouse /home/clickhouse/
 rm -rf /var/log/clickhouse-server/
 ln -s /home/clickhouse/data/log/ /var/log/clickhouse-server
 
-sudo yum install yum-utils
-sudo rpm --import https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG
-sudo yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
-sudo yum install clickhouse-server-$1 clickhouse-client-$1<<EOF
-y
-EOF
+yum install yum-utils
+rpm --import https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG
+yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
+yum install clickhouse-server-$1 clickhouse-client-$1 -y
 
 echo "<yandex>" >> /etc/clickhouse-server/metrika.xml
 echo "<clickhouse_remote_servers>" >> /etc/clickhouse-server/metrika.xml
@@ -283,6 +281,11 @@ then
     done
 fi
 
+sed -i '508, 617d' /etc/clickhouse-server/config.xml
+find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  's|<!--</remote_url_allow_hosts>-->|<!--</remote_url_allow_hosts>--><include_from>/etc/clickhouse-server/metrika.xml</include_from><remote_servers incl="clickhouse_remote_servers" /><zookeeper incl="zookeeper-servers" optional="true" />|g'
+
+#find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  's|<!--</remote_url_allow_hosts>-->|<!--</remote_url_allow_hosts>--><include_from>/etc/clickhouse-server/metrika.xml</include_from><remote_servers incl="clickhouse_remote_servers" /><zookeeper incl="zookeeper-servers" optional="true" />|g'
+
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<level>trace</level>|<level>information</level>|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<log>/var/log/clickhouse-server/clickhouse-server.log</log>|<log>/home/clickhouse/data/log/clickhouse-server.log</log>|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>|<errorlog>/home/clickhouse/data/log/clickhouse-server.err.log</errorlog>|g"
@@ -290,7 +293,6 @@ find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<path>/v
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|/var/lib/clickhouse/|/home/clickhouse/data/|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<!-- <timezone>Europe/Moscow</timezone> -->|<timezone>$7</timezone>|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<!-- <listen_host>0.0.0.0</listen_host> -->|<listen_host>0.0.0.0</listen_host>|g"
-find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|</remote_url_allow_hosts>|</remote_url_allow_hosts><include_from>/etc/clickhouse-server/metrika.xml</include_from>|g"
 
 find /etc/clickhouse-server/ -name 'users.xml' | xargs perl -pi -e  "s|<password></password>|<password>${11}</password>|g"
 sudo sed -i "9a <max_threads>${12}</max_threads>" /etc/clickhouse-server/users.xml
@@ -325,19 +327,16 @@ echo "          </s3>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        </volumes>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        <move_factor>$6</move_factor>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "      </tiered>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "      <s3>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "      <s3only>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        <volumes>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "          <main>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "          <s3>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "            <disk>s3</disk>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "          </main>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "          </s3>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        </volumes>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "      </s3>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "      </s3only>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "    </policies>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "  </storage_configuration>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "</yandex>" >> /etc/clickhouse-server/config.d/storage.xml
-
-sudo chown -R clickhouse.clickhouse /home/clickhouse/
-sudo chown -R clickhouse.clickhouse /etc/clickhouse-server/
 
 echo "<yandex>" >> /etc/clickhouse-server/config.d/macros.xml
 echo "    <macros>" >> /etc/clickhouse-server/config.d/macros.xml
@@ -347,57 +346,16 @@ echo "        <layer>01</layer>" >> /etc/clickhouse-server/config.d/macros.xml
 echo "    </macros>" >> /etc/clickhouse-server/config.d/macros.xml
 echo "</yandex>" >> /etc/clickhouse-server/config.d/macros.xml
 
-sudo systemctl start clickhouse-server
+chown -R clickhouse.clickhouse /home/clickhouse/
+chown -R clickhouse.clickhouse /etc/clickhouse-server/
 
-#################################         Monitor         ##################################
-# install clickhouse_exporter  
-sudo yum install -y go
-sudo yum install -y git
+systemctl stop clickhouse-server
+systemctl start clickhouse-server
+systemctl status clickhouse-server
 
-mkdir -p /home/ec2-user/tools/install/
-cd /home/ec2-user/tools/install/
-sudo git clone https://github.com/ClickHouse/clickhouse_exporter
-sleep 1
-cd clickhouse_exporter  
-sleep 1
-sudo go mod init  
-sudo go mod vendor  
-sudo go build   
-sleep 1
-
-export CLICKHOUSE_USER=default
-export CLICKHOUSE_PASSWORD=${11}
-
-sudo chmod -R 777 /home/ec2-user/tools/install/clickhouse_exporter
-sleep 1
-nohup ./clickhouse_exporter -scrape_uri=http://localhost:8123/ >nohup.log 2>&1 &  
-
-sleep 1
-curl http://localhost:9116/metrics
-
-# install node_exporter
-cd /home/ec2-user/tools/install/
-sudo git clone https://github.com/prometheus/node_exporter
-cd node_exporter   
-sudo make build  
-sudo ls ./node_exporter  
-sudo chmod -R 777 /home/ec2-user/tools/install/node_exporter
-sleep 1
-
-nohup ./node_exporter > nohup.log 2>&1 &   
-sleep 1
-
-curl http://localhost:9100/metrics
-
-echo "nohup /home/ec2-user/tools/install/clickhouse_exporter/clickhouse_exporter -scrape_uri=http://localhost:8123/ >nohup-clickhouse-exporter.log 2>&1 &" >> /home/ec2-user/tools/install/clickhouse-exporter.sh
-chmod +x /home/ec2-user/tools/install/clickhouse-exporter.sh
-echo "nohup /home/ec2-user/tools/install/node_exporter/node_exporter > nohup.log 2>&1 & " >> /home/ec2-user/tools/install/node-exporter.sh
-chmod +x /home/ec2-user/tools/install/node-exporter.sh
-echo "/home/ec2-user/tools/install/clickhouse-exporter.sh" >> /etc/rc.d/rc.local
-echo "/home/ec2-user/tools/install/node-exporter.sh" >> /etc/rc.d/rc.local
-chmod +x /etc/rc.d/rc.local
-
-#################################         Create Demo Table         ##################################
-sudo chmod +r /home/ec2-user/create-table-demo.sql
-clickhouse-client --user default --password ${11} -d default --multiquery <  create-table-demo.sql
+# Restart ClickHouse
+sleep 5
+systemctl stop clickhouse-server
+systemctl start clickhouse-server
+systemctl status clickhouse-server
 sleep 1
