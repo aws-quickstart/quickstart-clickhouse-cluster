@@ -7,11 +7,11 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
     - Label:
-        default: CloudWatch Dashboard Configuration
+        default: CloudWatch dashboard configuration
       Parameters:
       - DashboardName
     - Label:
-        default: ClickHouse Configuration
+        default: ClickHouse configuration
       Parameters:
       - ClickHouseNodeCount
       - ClickHouseInstanceID1
@@ -66,58 +66,58 @@ Metadata:
         default: Zookeeper instance type
 Parameters:
   DashboardName:
-    Description: CloudWatch dashboard name
+    Description: CloudWatch dashboard name.
     Type: String
   ClickHouseNodeCount:
     Type: String
-    Description: ClickHouse node count
+    Description: ClickHouse node count.
   ClickHouseInstanceID1:
-    Description: ClickHouseNode1 instance id.
+    Description: ClickHouse instance ID.
     Type: String
   ClickHouseInstanceID2:
-    Description: ClickHouseNode2 instance id.
+    Description: ClickHouse instance ID.
     Type: String
   ClickHouseInstanceID3:
-    Description: ClickHouseNode3 instance id.
+    Description: ClickHouse instance ID.
     Default: ''
     Type: String
   ClickHouseInstanceID4:
-    Description: ClickHouseNode4 instance id.
+    Description: ClickHouse instance ID.
     Default: ''
     Type: String
   ClickHouseInstanceID5:
-    Description: ClickHouseNode5 instance id.
+    Description: ClickHouse instance ID.
     Default: ''
     Type: String
   ClickHouseInstanceID6:
-    Description: ClickHouseNode6 instance id.
+    Description: ClickHouse instance ID.
     Default: ''
     Type: String
   ClickHouseInstanceID7:
-    Description: ClickHouseNode7 instance id.
+    Description: ClickHouse instance ID.
     Default: ''
     Type: String
   ClickHouseInstanceID8:
-    Description: ClickHouseNode8 instance id.
+    Description: ClickHouse instance ID.
     Default: ''
     Type: String
   ClickHouseImageId:
-    Description: ClickHouse EC2 Image id.
+    Description: ClickHouse EC2 image ID.
     Type: String
   ClickHouseInstanceType:
     Type: String
-    Description: ClickHouse instance type
+    Description: ClickHouse instance type.
   ZookeeperInstanceID1:
-    Description: ZookeeperNode1 instance id.
+    Description: Zookeeper instance ID.
     Type: String
   ZookeeperInstanceID2:
-    Description: ZookeeperNode2 instance id.
+    Description: Zookeeper instance ID.
     Type: String
   ZookeeperInstanceID3:
-    Description: ZookeeperNode3 instance id.
+    Description: Zookeeper instance ID.
     Type: String
   ZookeeperImageId:
-    Description: Zookeeper EC2 Image id.
+    Description: Zookeeper EC2 image ID.
     Type: String
   ZookeeperInstanceType:
     Type: String

@@ -6,16 +6,16 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
     - Label:
-        default: Network Configuration
+        default: Network configuration
       Parameters:
       - PrivateSubnetID
     - Label:
-        default: EC2 Configuration
+        default: EC2 configuration
       Parameters:
       - ZookeeperServerSecurityGroupID
       - KeyPairName
     - Label:
-        default: Zookeeper Configuration
+        default: Zookeeper configuration
       Parameters:
       - ZookeeperNodeName1
       - ZookeeperNodeName2
@@ -31,7 +31,7 @@ Metadata:
       - Iops
       - InstanceRoleArn
     - Label:
-        default: AWS Quick Start Configuration
+        default: AWS Quick Start configuration
       Parameters:
       - QSS3BucketName
       - QSS3KeyPrefix
@@ -39,9 +39,9 @@ Metadata:
       PrivateSubnetID:
         default: Private subnet ID
       ZookeeperServerSecurityGroupID:
-        default: Zookeeper Server security group
+        default: Zookeeper server security group
       KeyPairName:
-        default: Key pair Name
+        default: Key pair name
       ZookeeperNodeName1:
         default: Zookeeper node name 1
       ZookeeperNodeName2:
@@ -74,25 +74,25 @@ Metadata:
         default: S3 key prefix for the Quick Start assets
 Parameters: 
   PrivateSubnetID: 
-    Description: Private Subnet Id
+    Description: Private subnet Id.
     Type: String
   ZookeeperServerSecurityGroupID: 
-    Description: ID of the Zookeeper Server Access Security Group (e.g., sg-7f16e910)
+    Description: ID of the Zookeeper server access security group (e.g., sg-7f16e910).
     Type: AWS::EC2::SecurityGroup::Id
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
-    Description: Public/private key pairs allow you to securely connect to your instance after it launches
+    Description: Public/private key pairs allow you to securely connect to your instance after it launches.
   ZookeeperNodeName1: 
     Default: ZookeeperNode1
-    Description: Zookeeper node name 1
+    Description: Zookeeper node name 1.
     Type: String
   ZookeeperNodeName2:
     Default: ZookeeperNode2
-    Description: Zookeeper node name 2
+    Description: Zookeeper node name 2.
     Type: String
   ZookeeperNodeName3:
     Default: ZookeeperNode3
-    Description: Zookeeper node name 3
+    Description: Zookeeper node name 3.
     Type: String
   ZookeeperInstanceType: 
     Description: Amazon EC2 instance type for the Zookeeper nodes.
@@ -132,29 +132,29 @@ Parameters:
     AllowedValues:
     - '3.5.9'
     Default: '3.5.9'
-    Description: Zookeeper Version (3.5.9)
+    Description: Zookeeper version (3.5.9).
     Type: String
   ZookeeperNodeCount:
     Default: 3
-    Description: Zookeeper node count
+    Description: Zookeeper node count.
     Type: Number
   CloudWatchAgentURL:
-    Description: For each download link, you can download and install the CloudWatch agent using the command line
+    Description: For each download link, you can download and install the CloudWatch agent using the command line.
     Type: String
   RootStackName:
     Type: String
-    Description: Prefix name of Zookeeper cluster
+    Description: Prefix name of Zookeeper cluster.
   DeviceName:
-    Description: The device name (for example, /dev/sdh or xvdh)
+    Description: The device name (for example, /dev/sdh or xvdh).
     Type: String
     Default: /dev/xvdh
   VolumeSize: 
     Type: String
-    Description: EBS Volume Size (data) to be attached to node in GBs
+    Description: EBS volume size (data) to be attached to node in GBs.
     Default: 500
   VolumeType: 
     Type: String
-    Description: EBS Volume Type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack
+    Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
     Default: gp2
     AllowedValues:
       - gp2
@@ -163,10 +163,10 @@ Parameters:
       - io1
   Iops: 
     Type: String
-    Description: Iops of EBS volume when io1 type is chosen. Otherwise ignored
+    Description: IOPS of EBS volume when io1 type is chosen. Otherwise ignored.
     Default: 1000
   InstanceRoleArn:
-    Description: aws or aws-cn
+    Description: For aws or aws-cn.
     Type: String
     Default: aws
   QSS3BucketName:
@@ -225,13 +225,52 @@ Resources:
           Statement:
           - Effect: Allow
             Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            - logs:DescribeLogStreams
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:DescribeLogStreams
             Resource: !Sub arn:${InstanceRoleArn}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${ZookeeperMainLogGroup}:*
           - Effect: Allow
-            Action: '*'
+            Action: 
+              - s3:PutObjectAcl
+              - s3:GetObjectAcl
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:RestoreObject
+              - s3:GetObjectVersion
+              - s3:DeleteObjectVersion
+              - s3:GetObjectRetention
+              - s3:PutObjectRetention
+              - s3:GetObjectVersionAcl
+              - s3:PutObjectVersionAcl
+              - s3:CreateBucket
+              - s3:ListAllMyBuckets
+              - s3:ListBucket
+              - s3:PutBucketVersioning
+              - s3:ListBucketVersions
+              - s3:PutBucketLogging
+              - s3:PutBucketAcl
+              - s3:GetBucketAcl
+              - s3:PutBucketPolicy
+              - s3:GetBucketPolicy
+              - s3:GetBucketLocation
+              - s3:PutEncryptionConfiguration
+              - s3:GetEncryptionConfiguration
+              - s3:GetBucketVersioning
+              - s3:GetLifecycleConfiguration     
+              - s3:GetIntelligentTieringConfiguration
+              - s3:PutIntelligentTieringConfiguration
+              - s3:PutLifecycleConfiguration
+            Resource: !Sub arn:${InstanceRoleArn}:s3:::*/*
+          - Effect: Allow
+            Action:
+              - ec2:CreateTags
+              - ec2:DeleteTags
+            Resource: !Sub arn:${InstanceRoleArn}:ec2:*:${AWS::AccountId}:instance/*
+          - Effect: Allow
+            Action:
+              - ec2:DescribeTags
             Resource: '*'
         PolicyName: Zookeeper-Instance-Role
   ZookeeperInstanceProfile:
@@ -934,6 +973,13 @@ Resources:
               let flag--
               sleep 1
             done
+            # Clean
+            rm -rf instancelist
+            rm -rf result
+            rm -rf /home/ec2-user/zookeeper-install.sh
+            rm -rf /home/ec2-user/find-zookeeper-node.py
+            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+            rm -rf /home/ec2-user/apache-zookeeper-3.5.9-bin.tar.gz
 
             echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
             chmod +x /home/ec2-user/zk-start.sh

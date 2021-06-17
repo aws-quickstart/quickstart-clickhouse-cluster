@@ -6,19 +6,19 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
     - Label:
-        default: Network Configuration
+        default: Network configuration
       Parameters:
       - PublicSubnetID1
       - PrivateSubnetID1
       - PrivateSubnetID2
     - Label:
-        default: EC2 Configuration
+        default: EC2 configuration
       Parameters:
       - KeyPairName
       - ClickHouseServerSecurityGroup
       - AdminServerSecurityGroup
     - Label:
-        default: ClickHouse Configuration
+        default: ClickHouse configuration
       Parameters:
       - ClickHouseNodeName1
       - ClickHouseNodeName2
@@ -52,12 +52,12 @@ Metadata:
       - ZookeeperPrivateIp3
       - InstanceRoleArn
     - Label:
-        default: ClickHouse operation Configuration
+        default: ClickHouse operation configuration
       Parameters:
       - GrafanaVersion
       - CloudWatchAgentURL
     - Label:
-        default: AWS Quick Start Configuration
+        default: AWS Quick Start configuration
       Parameters:
       - QSS3BucketName
       - QSS3KeyPrefix
@@ -71,9 +71,9 @@ Metadata:
       KeyPairName:
         default: Key pair name
       ClickHouseServerSecurityGroup:
-        default: ClickHouse Server security group
+        default: ClickHouse server security group
       AdminServerSecurityGroup:
-        default: ClickHouse Admin Server security group
+        default: ClickHouse admin server security group
       ClickHouseNodeName1:
         default: ClickHouse node name 1
       ClickHouseNodeName2:
@@ -95,7 +95,7 @@ Metadata:
       ClickHouseVersion:
         default: ClickHouse version
       ClickHouseTimezone:
-        default: ClickHouse timezone
+        default: ClickHouse time zone
       ClickHouseNodeCount:
         default: Number of ClickHouse nodes
       DBPassword:
@@ -131,11 +131,11 @@ Metadata:
       GrafanaVersion:
         default: Grafana version
       ZookeeperPrivateIp1:
-        default: Zookeeper private Ip 1
+        default: Zookeeper private IP 1
       ZookeeperPrivateIp2:
-        default: Zookeeper private Ip 2
+        default: Zookeeper private IP 2
       ZookeeperPrivateIp3:
-        default: Zookeeper private Ip 3
+        default: Zookeeper private IP 3
       CloudWatchAgentURL:
         default: CloudWatch agent URL
       InstanceRoleArn:
@@ -146,54 +146,54 @@ Metadata:
         default: AWS Quick Start S3 key prefix
 Parameters: 
   PublicSubnetID1: 
-    Description: Public Subnet 1 Id
+    Description: Public Subnet 1 ID.
     Type: String
   PrivateSubnetID1: 
-    Description: Private Subnet 1 Id
+    Description: Private Subnet 1 ID.
     Type: String
   PrivateSubnetID2: 
-    Description: Private Subnet 2 Id
+    Description: Private Subnet 2 ID.
     Type: String
   ClickHouseServerSecurityGroup: 
-    Description: ID of the ClickHouse Server Access Security Group (e.g., sg-xxxxxxxx)
+    Description: ID of the ClickHouse server access security group (e.g., sg-xxxxxxxx).
     Type: AWS::EC2::SecurityGroup::Id
   AdminServerSecurityGroup:
-    Description: ID of the ClickHouse Admin Server Access Security Group (e.g., sg-xxxxxxxx)
+    Description: ID of the ClickHouse admin server access security group (e.g., sg-xxxxxxxx).
     Type: AWS::EC2::SecurityGroup::Id
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
-    Description: Public/private key pairs allow you to securely connect to your instance after it launches
+    Description: Public/private key pairs allow you to securely connect to your instance after it launches.
   ClickHouseNodeName1:
     Default: ClickHouseNode1 
-    Description: ClickHouse node name 1
+    Description: ClickHouse node name 1.
     Type: String
   ClickHouseNodeName2: 
     Default: ClickHouseNode2
-    Description: ClickHouse node name 2
+    Description: ClickHouse node name 2.
     Type: String
   ClickHouseNodeName3:
     Default: ClickHouseNode3 
-    Description: ClickHouse node name 3
+    Description: ClickHouse node name 3.
     Type: String
   ClickHouseNodeName4: 
     Default: ClickHouseNode4
-    Description: ClickHouse node name 4
+    Description: ClickHouse node name 4.
     Type: String
   ClickHouseNodeName5:
     Default: ClickHouseNode5 
-    Description: ClickHouse node name 5
+    Description: ClickHouse node name 5.
     Type: String
   ClickHouseNodeName6: 
     Default: ClickHouseNode6
-    Description: ClickHouse node name 6
+    Description: ClickHouse node name 6.
     Type: String
   ClickHouseNodeName7:
     Default: ClickHouseNode7 
-    Description: ClickHouse node name 7
+    Description: ClickHouse node name 7.
     Type: String
   ClickHouseNodeName8: 
     Default: ClickHouseNode8
-    Description: ClickHouse node name 8
+    Description: ClickHouse node name 8.
     Type: String
   ClickHouseInstanceType: 
     Description: Amazon EC2 instance type for the ClickHouse nodes.
@@ -234,43 +234,43 @@ Parameters:
     - '21.4.5.46-2'
     - '21.5.5.12-2'
     Default: '21.4.5.46-2'
-    Description: ClickHouse Version (21.4.5 or 21.5.5)
+    Description: ClickHouse version (21.4.5 or 21.5.5).
     Type: String
   ClickHouseTimezone:
     Default: Asia/Shanghai
-    Description: ClickHouse Timezone
+    Description: ClickHouse time zone.
     Type: String
   ClickHouseNodeCount:
     Default: 2
-    Description: ClickHouse node count
+    Description: ClickHouse node count.
     Type: Number
   DBPassword:
     Default: Qwerty
-    Description: ClickHouse database password
+    Description: ClickHouse database password.
     Type: String
   ClickHouseBucketName:
     Default: clickhouse-data
-    Description: ClickHouse bucket name
+    Description: ClickHouse bucket name.
     Type: String
   MoveFactor:
     Default: 0.3
-    Description: Tiered storage parameter
+    Description: Tiered storage parameter.
     Type: String
   RootStackName:
     Default: quickstart-clickhouse-cluster
-    Description: Prefix name of the ClickHouse cluster
+    Description: Prefix name of the ClickHouse cluster.
     Type: String
   DeviceName:
-    Description: The device name (for example, /dev/sdh or xvdh)
+    Description: The device name (for example, /dev/sdh or xvdh).
     Type: String
     Default: /dev/xvdh
   VolumeSize: 
     Type: String
-    Description: EBS Volume Size (data) to be attached to node in GBs
+    Description: EBS volume size (data) to be attached to node in GBs.
     Default: 500
   VolumeType: 
     Type: String
-    Description: EBS Volume Type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack
+    Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
     Default: gp2
     AllowedValues:
       - gp2
@@ -279,7 +279,7 @@ Parameters:
       - io1
   Iops: 
     Type: String
-    Description: Iops of EBS volume when io1 type is chosen. Otherwise ignored
+    Description: IOPS of EBS volume when io1 type is chosen. Otherwise ignored.
     Default: 1000
   MaxThreads:
     AllowedValues:
@@ -289,7 +289,7 @@ Parameters:
     - '16'
     - '32'
     Default: '8'
-    Description: max_threads for clickhouse Default users.xml //recommend The number of cores using the instance
+    Description: The max_threads for ClickHouse default users.xml //Recommend The number of cores using the instance.
     Type: String
   MaxMemoryUsage:
     AllowedValues:
@@ -298,7 +298,7 @@ Parameters:
     - '42949672960'
     - '107374182400'
     Default: '10737418240'
-    Description: max_memory_usage for clickhouse Default users.xml // Unit is byte, for example 21474836480=20g //In a single Clickhouse service process, the maximum amount of memory used by running a query is limited, and the default value is 10g
+    Description: The max_memory_usage for ClickHouse default users.xml // Unit is byte, for example 21474836480=20g //In a single Clickhouse service process, the maximum amount of memory used by running a query is limited, and the default value is 10g.
     Type: String
   MaxInsertThreads:
     AllowedValues:
@@ -307,7 +307,7 @@ Parameters:
     - '8'
     - '16'
     Default: '4'
-    Description: max_insert_threads for clickhouse Default users.xml // The maximum number of threads to execute the INSERT SELECT query.
+    Description: The max_insert_threads for ClickHouse default users.xml // The maximum number of threads to run the INSERT SELECT query.
     Type: String
   DistributedProductMode:
     AllowedValues:
@@ -316,7 +316,7 @@ Parameters:
     - 'global'
     - 'allow'
     Default: 'deny'
-    Description: distributed_product_mode for clickhouse Default users.xml // ClickHouse applies this setting when the query contains the product of distributed tables, i.e. when the query for a distributed table contains a non-GLOBAL subquery for the distributed table.
+    Description: The distributed_product_mode for ClickHouse default users.xml // ClickHouse applies this setting when the query contains the product of distributed tables, i.e. when the query for a distributed table contains a non-GLOBAL subquery for the distributed table.
     Type: String
   LoadBalancing:
     AllowedValues:
@@ -325,7 +325,7 @@ Parameters:
     - 'in_order'
     - 'first_or_random'
     Default: 'random'
-    Description: load_balancing for clickhouse Default users.xml // Specifies the algorithm of replicas selection that is used for distributed query processing..
+    Description: The load_balancing for ClickHouse default users.xml // Specifies the algorithm of replicas selection that is used for distributed query processing.
     Type: String
   MaxDataPartSize:
     AllowedValues:
@@ -333,11 +333,11 @@ Parameters:
     - '5368709120'
     - '10737418240'
     Default: '1073741824'
-    Description: max_data_part_size_bytes for clickhouse Default storage.xml //  Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
+    Description: The max_data_part_size_bytes for ClickHouse default storage.xml //  Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
     Type: String
   GrafanaVersion:
     Default: 8.0.1-1
-    Description: Grafana dashboards give insightful meaning to data collected from ClickHouse
+    Description: Grafana version.
     Type: String
   DemoDataSize:
     AllowedValues:
@@ -346,22 +346,22 @@ Parameters:
     - 'medium'
     - 'large'
     Default: 'small'
-    Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g
+    Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
   ZookeeperPrivateIp1:
-    Description: Zookeeper private Ip 1
+    Description: Zookeeper private IP 1.
     Type: String
   ZookeeperPrivateIp2:
-    Description: Zookeeper private Ip 2
+    Description: Zookeeper private IP 2.
     Type: String
   ZookeeperPrivateIp3:
-    Description: Zookeeper private Ip 3
+    Description: Zookeeper private IP 3.
     Type: String
   CloudWatchAgentURL:
-    Description: For each download link, you can download and install the CloudWatch agent using the command line
+    Description: For each download link, you can download and install the CloudWatch agent using the command line.
     Type: String
   InstanceRoleArn:
-    Description: aws or aws-cn
+    Description: For aws or aws-cn.
     Type: String
     Default: aws
   QSS3BucketName:
@@ -433,13 +433,52 @@ Resources:
           Statement:
           - Effect: Allow
             Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            - logs:DescribeLogStreams
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:DescribeLogStreams
             Resource: !Sub arn:${InstanceRoleArn}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${ClickHouseMainLogGroup}:*
           - Effect: Allow
-            Action: '*'
+            Action: 
+              - s3:PutObjectAcl
+              - s3:GetObjectAcl
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:RestoreObject
+              - s3:GetObjectVersion
+              - s3:DeleteObjectVersion
+              - s3:GetObjectRetention
+              - s3:PutObjectRetention
+              - s3:GetObjectVersionAcl
+              - s3:PutObjectVersionAcl
+              - s3:CreateBucket
+              - s3:ListAllMyBuckets
+              - s3:ListBucket
+              - s3:PutBucketVersioning
+              - s3:ListBucketVersions
+              - s3:PutBucketLogging
+              - s3:PutBucketAcl
+              - s3:GetBucketAcl
+              - s3:PutBucketPolicy
+              - s3:GetBucketPolicy
+              - s3:GetBucketLocation
+              - s3:PutEncryptionConfiguration
+              - s3:GetEncryptionConfiguration
+              - s3:GetBucketVersioning
+              - s3:GetLifecycleConfiguration     
+              - s3:GetIntelligentTieringConfiguration
+              - s3:PutIntelligentTieringConfiguration
+              - s3:PutLifecycleConfiguration
+            Resource: !Sub arn:${InstanceRoleArn}:s3:::*/*
+          - Effect: Allow
+            Action:
+              - ec2:CreateTags
+              - ec2:DeleteTags
+            Resource: !Sub arn:${InstanceRoleArn}:ec2:*:${AWS::AccountId}:instance/*
+          - Effect: Allow
+            Action:
+              - ec2:DescribeTags
             Resource: '*'
         PolicyName: ClickHouse-Instance-Role
   ClickHouseInstanceProfile:
@@ -868,14 +907,34 @@ Resources:
             clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> ch-install.log
                 break
             fi
             let flag--
             sleep 1
             done
+
+            # Clean
+            rm -rf /home/ec2-user/find-clickhouse-node.py
+            rm -rf /home/ec2-user/clickhouse-install.sh
+            rm -rf /home/ec2-user/instancelist-1
+            rm -rf /home/ec2-user/result-1
+            rm -rf /home/ec2-user/instancelist-2
+            rm -rf /home/ec2-user/result-2
+            rm -rf /home/ec2-user/instancelist-3
+            rm -rf /home/ec2-user/result-3
+            rm -rf /home/ec2-user/instancelist-4
+            rm -rf /home/ec2-user/result-4
+            rm -rf /home/ec2-user/instancelist-5
+            rm -rf /home/ec2-user/result-5
+            rm -rf /home/ec2-user/instancelist-6
+            rm -rf /home/ec2-user/result-6
+            rm -rf /home/ec2-user/instancelist-7
+            rm -rf /home/ec2-user/result-7
+            rm -rf /home/ec2-user/instancelist-8
+            rm -rf /home/ec2-user/result-8
             
-            echo "Begin to create demo table"
+            echo "Begin to create demo table" >> ch-install.log
             clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance1 --region ${AWS::Region}
@@ -885,7 +944,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT60M"
   ClickHouseInstance2: 
     Condition: 2NodesCondition
     Type: AWS::EC2::Instance
@@ -1095,14 +1154,34 @@ Resources:
             clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> ch-install.log
                 break
             fi
             let flag--
             sleep 1
             done
+
+            # Clean
+            rm -rf /home/ec2-user/find-clickhouse-node.py
+            rm -rf /home/ec2-user/clickhouse-install.sh
+            rm -rf /home/ec2-user/instancelist-1
+            rm -rf /home/ec2-user/result-1
+            rm -rf /home/ec2-user/instancelist-2
+            rm -rf /home/ec2-user/result-2
+            rm -rf /home/ec2-user/instancelist-3
+            rm -rf /home/ec2-user/result-3
+            rm -rf /home/ec2-user/instancelist-4
+            rm -rf /home/ec2-user/result-4
+            rm -rf /home/ec2-user/instancelist-5
+            rm -rf /home/ec2-user/result-5
+            rm -rf /home/ec2-user/instancelist-6
+            rm -rf /home/ec2-user/result-6
+            rm -rf /home/ec2-user/instancelist-7
+            rm -rf /home/ec2-user/result-7
+            rm -rf /home/ec2-user/instancelist-8
+            rm -rf /home/ec2-user/result-8
             
-            echo "Begin to create demo table"
+            echo "Begin to create demo table" >> ch-install.log
             clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance2 --region ${AWS::Region}
@@ -1112,7 +1191,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT60M"
   ClickHouseInstance3: 
     Condition: 4NodesCondition
     Type: AWS::EC2::Instance
@@ -1322,14 +1401,34 @@ Resources:
             clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running" >> create-table.log
+                echo "ClickHouse is running" >> ch-install.log
                 break
             fi
             let flag--
             sleep 1
             done
+
+            # Clean
+            rm -rf /home/ec2-user/find-clickhouse-node.py
+            rm -rf /home/ec2-user/clickhouse-install.sh
+            rm -rf /home/ec2-user/instancelist-1
+            rm -rf /home/ec2-user/result-1
+            rm -rf /home/ec2-user/instancelist-2
+            rm -rf /home/ec2-user/result-2
+            rm -rf /home/ec2-user/instancelist-3
+            rm -rf /home/ec2-user/result-3
+            rm -rf /home/ec2-user/instancelist-4
+            rm -rf /home/ec2-user/result-4
+            rm -rf /home/ec2-user/instancelist-5
+            rm -rf /home/ec2-user/result-5
+            rm -rf /home/ec2-user/instancelist-6
+            rm -rf /home/ec2-user/result-6
+            rm -rf /home/ec2-user/instancelist-7
+            rm -rf /home/ec2-user/result-7
+            rm -rf /home/ec2-user/instancelist-8
+            rm -rf /home/ec2-user/result-8
             
-            echo "Begin to create demo table" >> create-table.log
+            echo "Begin to create demo table" >> ch-install.log
             clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance3 --region ${AWS::Region}
@@ -1339,7 +1438,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT60M"
   ClickHouseInstance4: 
     Condition: 4NodesCondition
     Type: AWS::EC2::Instance
@@ -1566,7 +1665,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT60M"
   ClickHouseInstance5: 
     Condition: 6NodesCondition
     Type: AWS::EC2::Instance
@@ -1793,7 +1892,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT60M"
   ClickHouseInstance6: 
     Condition: 6NodesCondition
     Type: AWS::EC2::Instance
@@ -2020,7 +2119,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT60M"
   ClickHouseInstance7: 
     Condition: 8NodesCondition
     Type: AWS::EC2::Instance
@@ -2247,7 +2346,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT60M"
   ClickHouseInstance8: 
     Condition: 8NodesCondition
     Type: AWS::EC2::Instance
@@ -2474,8 +2573,12 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT60M"
 Outputs:
+  ClickHouseAdminPublicDnsName:
+    Condition: 2NodesCondition
+    Description: ClickHouse Admin instance
+    Value: !GetAtt ClickHouseAdmin.PublicDnsName
   ClickHouseInstanceID1:
     Condition: 2NodesCondition
     Description: ClickHouse instance

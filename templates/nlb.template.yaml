@@ -6,7 +6,7 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
     - Label:
-        default: Network Configuration
+        default: Network configuration
       Parameters:
       - VPCID
       - Subnets
@@ -35,34 +35,34 @@ Metadata:
         default: EC2 instance id 4
 Parameters:
   VPCID:
-    Description: VPC in which ELB & Webserver will be placed
+    Description: VPC in which ELB will be placed.
     Type: AWS::EC2::VPC::Id
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
-    Description: Subnets in which ELB will be created. Select all AZs/Subnet
+    Description: Subnets in which ELB will be created. Select all AZs/Subnet.
   NodeCount:
     Type: String
-    Description: Node count
+    Description: Node count.
     Default: 2
   Port:
     Type: String
-    Description: Service port
+    Description: Service port.
     Default: 8123
   EC2Instance1:
     Type: String
-    Description: Choose EC2 instance
+    Description: Choose EC2 instance.
     Default: 1
   EC2Instance2:
     Type: String
-    Description: Choose EC2 instance
+    Description: Choose EC2 instance.
     Default: 2
   EC2Instance3:
     Type: String
-    Description: Choose EC2 instance
+    Description: Choose EC2 instance.
     Default: 3
   EC2Instance4:
     Type: String
-    Description: Choose EC2 instance
+    Description: Choose EC2 instance.
     Default: 4
 Conditions:
   2NodesCondition: !Equals [!Ref 'NodeCount', '2']
@@ -90,7 +90,7 @@ Resources:
     Condition: 2NodesCondition
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: networklb-target
+      Name: !Sub ${VPCID}-Nlb-target
       Port: !Ref Port
       Protocol: TCP
       VpcId: !Ref VPCID
@@ -111,7 +111,7 @@ Resources:
     Condition: 4NodesCondition
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: networklb-target
+      Name: !Sub ${VPCID}-Nlb-target
       Port: !Ref Port
       Protocol: TCP
       VpcId: !Ref VPCID
@@ -134,7 +134,7 @@ Resources:
     Condition: 6NodesCondition
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: networklb-target
+      Name: !Sub ${VPCID}-Nlb-target
       Port: !Ref Port
       Protocol: TCP
       VpcId: !Ref VPCID
@@ -159,7 +159,7 @@ Resources:
     Condition: 8NodesCondition
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: networklb-target
+      Name: !Sub ${VPCID}-Nlb-target
       Port: !Ref Port
       Protocol: TCP
       VpcId: !Ref VPCID

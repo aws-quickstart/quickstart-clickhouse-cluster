@@ -38,8 +38,6 @@ while((flag > 0))
 do
     echo `aws ec2 describe-tags --filters Name=key,Values=$3-clickhouse-shard01-replica01 --region $4` > instancelist-1
     count=`awk -v RS="@#$j" '{print gsub(/instance/,"&")}' instancelist-1`
-    echo `aws ec2 describe-tags --filters Name=key,Values=$3-clickhouse-shard01-replica02 --region $4` > instancelist-2
-    count=`awk -v RS="@#$j" '{print gsub(/instance/,"&")}' instancelist-2`
     if (( $count >= 1 ))
     then
         python3 find-clickhouse-node.py instancelist-1 result-1
@@ -222,5 +220,26 @@ sleep 1
 ls -1 *.zip | xargs -I{} -P $(nproc) bash -c "echo {}; unzip -cq {} '*.csv' | sed 's/\.00//g' | clickhouse-client --host ${node1} --password $2 --input_format_with_names_use_header=0 --query='INSERT INTO ontime FORMAT CSVWithNames'"
 sleep 1
 #echo 'INSERT INTO ontime FORMAT CSVWithNames' | curl 'http://localhost:9099/?user=$replica-write&password=$replicapassword' -d @-
+
+# Clean
+rm -rf /home/ec2-user/find-clickhouse-node.py
+rm -rf /home/ec2-user/instancelist-1
+rm -rf /home/ec2-user/result-1
+rm -rf /home/ec2-user/instancelist-2
+rm -rf /home/ec2-user/result-2
+rm -rf /home/ec2-user/instancelist-3
+rm -rf /home/ec2-user/result-3
+rm -rf /home/ec2-user/instancelist-4
+rm -rf /home/ec2-user/result-4
+rm -rf /home/ec2-user/instancelist-5
+rm -rf /home/ec2-user/result-5
+rm -rf /home/ec2-user/instancelist-6
+rm -rf /home/ec2-user/result-6
+rm -rf /home/ec2-user/instancelist-7
+rm -rf /home/ec2-user/result-7
+rm -rf /home/ec2-user/instancelist-8
+rm -rf /home/ec2-user/result-8
+rm -rf /home/ec2-user/tools/install/grafana-$7.x86_64.rpm
+rm -rf /home/ec2-user/tools/install/demodata/downloaddata.sh
 
 echo " Done with installations"
