@@ -1,0 +1,2800 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: (SO8019) - This template is used for setting up a ClickHouse cluster on Graviton2. (qs-xxxxxxxxx)
+
+Metadata:
+  LICENSE: Apache License Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network configuration
+      Parameters:
+      - PublicSubnetID1
+      - PrivateSubnetID1
+      - PrivateSubnetID2
+    - Label:
+        default: EC2 configuration
+      Parameters:
+      - KeyPairName
+      - ClickHouseServerSecurityGroup
+      - AdminServerSecurityGroup
+    - Label:
+        default: ClickHouse configuration
+      Parameters:
+      - ClickHouseNodeName1
+      - ClickHouseNodeName2
+      - ClickHouseNodeName3
+      - ClickHouseNodeName4
+      - ClickHouseNodeName5
+      - ClickHouseNodeName6
+      - ClickHouseNodeName7
+      - ClickHouseNodeName8
+      - ClickHouseInstanceType
+      - ClickHouseVersion
+      - ClickHouseTimezone
+      - ClickHouseNodeCount
+      - DBPassword
+      - ClickHouseBucketName
+      - MoveFactor
+      - RootStackName
+      - DeviceName
+      - VolumeSize
+      - VolumeType
+      - Iops
+      - MaxThreads
+      - MaxMemoryUsage
+      - MaxInsertThreads
+      - DistributedProductMode
+      - LoadBalancing
+      - MaxDataPartSize
+      - DemoDataSize
+      - ZookeeperPrivateIp1
+      - ZookeeperPrivateIp2
+      - ZookeeperPrivateIp3
+      - InstanceRoleArn
+    - Label:
+        default: ClickHouse operation configuration
+      Parameters:
+      - GrafanaVersion
+      - CloudWatchAgentURL
+    - Label:
+        default: AWS Quick Start configuration
+      Parameters:
+      - QSS3BucketName
+      - QSS3KeyPrefix
+    ParameterLabels:
+      PublicSubnetID1:
+        default: Public subnet ID 1
+      PrivateSubnetID1:
+        default: Private subnet ID 1
+      PrivateSubnetID2:
+        default: Private subnet ID 2
+      KeyPairName:
+        default: Key pair name
+      ClickHouseServerSecurityGroup:
+        default: ClickHouse server security group
+      AdminServerSecurityGroup:
+        default: ClickHouse admin server security group
+      ClickHouseNodeName1:
+        default: ClickHouse node name 1
+      ClickHouseNodeName2:
+        default: ClickHouse node name 2
+      ClickHouseNodeName3:
+        default: ClickHouse node name 3
+      ClickHouseNodeName4:
+        default: ClickHouse node name 4
+      ClickHouseNodeName5:
+        default: ClickHouse node name 5
+      ClickHouseNodeName6:
+        default: ClickHouse node name 6
+      ClickHouseNodeName7:
+        default: ClickHouse node name 7
+      ClickHouseNodeName8:
+        default: ClickHouse node name 8
+      ClickHouseInstanceType:
+        default: ClickHouse instance type
+      ClickHouseVersion:
+        default: ClickHouse version
+      ClickHouseTimezone:
+        default: ClickHouse time zone
+      ClickHouseNodeCount:
+        default: Number of ClickHouse nodes
+      DBPassword:
+        default: DB password
+      ClickHouseBucketName:
+        default: ClickHouse bucket name
+      MoveFactor:
+        default: Move factor
+      RootStackName:
+        default: Prefix name of ClickHouse cluster
+      DeviceName:
+        default: Device name of ClickHouse nodes
+      VolumeType:
+        default: Volume type of ClickHouse nodes
+      VolumeSize:
+        default: Volume size of ClickHouse nodes
+      Iops:
+        default: IOPS of ClickHouse nodes
+      DistributedProductMode:
+        default: Distributed product mode
+      LoadBalancing:
+        default: Load balancing
+      MaxDataPartSize:
+        default: Max data part size
+      MaxInsertThreads:
+        default: Max insert threads
+      MaxMemoryUsage:
+        default: Max memory usage
+      MaxThreads:
+        default: Max threads
+      DemoDataSize:
+        default: Demo data size
+      GrafanaVersion:
+        default: Grafana version
+      ZookeeperPrivateIp1:
+        default: Zookeeper private IP 1
+      ZookeeperPrivateIp2:
+        default: Zookeeper private IP 2
+      ZookeeperPrivateIp3:
+        default: Zookeeper private IP 3
+      CloudWatchAgentURL:
+        default: CloudWatch agent URL
+      InstanceRoleArn:
+        default: Instance role arn for aws or aws-cn
+      QSS3BucketName:
+        default: AWS Quick Start S3 bucket name
+      QSS3KeyPrefix:
+        default: AWS Quick Start S3 key prefix
+Parameters: 
+  PublicSubnetID1: 
+    Description: Public Subnet 1 ID.
+    Type: String
+  PrivateSubnetID1: 
+    Description: Private Subnet 1 ID.
+    Type: String
+  PrivateSubnetID2: 
+    Description: Private Subnet 2 ID.
+    Type: String
+  ClickHouseServerSecurityGroup: 
+    Description: ID of the ClickHouse server access security group (e.g., sg-xxxxxxxx).
+    Type: AWS::EC2::SecurityGroup::Id
+  AdminServerSecurityGroup:
+    Description: ID of the ClickHouse administrator server access security group (e.g., sg-xxxxxxxx).
+    Type: AWS::EC2::SecurityGroup::Id
+  KeyPairName: 
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Public/private key pairs allow you to securely connect to your instance after it launches.
+  ClickHouseNodeName1:
+    Default: ClickHouseNode1 
+    Description: ClickHouse node name 1.
+    Type: String
+  ClickHouseNodeName2: 
+    Default: ClickHouseNode2
+    Description: ClickHouse node name 2.
+    Type: String
+  ClickHouseNodeName3:
+    Default: ClickHouseNode3 
+    Description: ClickHouse node name 3.
+    Type: String
+  ClickHouseNodeName4: 
+    Default: ClickHouseNode4
+    Description: ClickHouse node name 4.
+    Type: String
+  ClickHouseNodeName5:
+    Default: ClickHouseNode5 
+    Description: ClickHouse node name 5.
+    Type: String
+  ClickHouseNodeName6: 
+    Default: ClickHouseNode6
+    Description: ClickHouse node name 6.
+    Type: String
+  ClickHouseNodeName7:
+    Default: ClickHouseNode7 
+    Description: ClickHouse node name 7.
+    Type: String
+  ClickHouseNodeName8: 
+    Default: ClickHouseNode8
+    Description: ClickHouse node name 8.
+    Type: String
+  ClickHouseInstanceType: 
+    Description: Amazon EC2 instance type for the ClickHouse nodes.
+    Type: String
+    Default: r6gd.8xlarge
+    AllowedValues: 
+      - r6gd.xlarge
+      - r6gd.2xlarge
+      - r6gd.4xlarge
+      - r6gd.8xlarge
+  ClickHouseVersion:
+    AllowedValues:
+    - '21.4.5.46-2'
+    - '21.5.5.12-2'
+    Default: '21.4.5.46-2'
+    Description: ClickHouse version (21.4.5 or 21.5.5).
+    Type: String
+  ClickHouseTimezone:
+    Default: Asia/Shanghai
+    Description: ClickHouse time zone.
+    Type: String
+  ClickHouseNodeCount:
+    Default: 2
+    Type: Number
+    Description: ClickHouse node count.
+    AllowedValues: 
+      - 2
+      - 4
+      - 6
+      - 8
+  DBPassword:
+    Default: Qwerty
+    Description: ClickHouse database password.
+    Type: String
+  ClickHouseBucketName:
+    Default: clickhouse-data
+    Description: ClickHouse bucket name.
+    Type: String
+  MoveFactor:
+    Default: 0.3
+    Description: Tiered storage parameter.
+    Type: String
+  RootStackName:
+    Default: quickstart-clickhouse-cluster
+    Description: Prefix name of the ClickHouse cluster.
+    Type: String
+  DeviceName:
+    Description: The device name (for example, /dev/sdh or xvdh).
+    Type: String
+    Default: /dev/xvdh
+  VolumeSize: 
+    Type: String
+    Description: EBS volume size (data) to be attached to node in GBs.
+    Default: 500
+  VolumeType: 
+    Type: String
+    Description: EBS volume type (data) to be attached to node in GBs [gp1,gp2,st1], one volume for data storage is mounted automatically by CloudFormation stack.
+    Default: gp2
+    AllowedValues:
+      - gp2
+      - gp3
+      - st1
+      - io1
+  Iops: 
+    Type: String
+    Description: IOPS of EBS volume when io1 type is chosen. Otherwise ignored.
+    Default: 1000
+  MaxThreads:
+    AllowedValues:
+    - '2'
+    - '4'
+    - '8'
+    - '16'
+    - '32'
+    Default: '8'
+    Description: The max_threads for ClickHouse default users.xml //Recommend The number of cores using the instance.
+    Type: String
+  MaxMemoryUsage:
+    AllowedValues:
+    - '10737418240'
+    - '21474836480'
+    - '42949672960'
+    - '107374182400'
+    Default: '10737418240'
+    Description: The max_memory_usage for ClickHouse default users.xml // Unit is byte, for example 21474836480=20g //In a single ClickHouse service process, the maximum amount of memory used by running a query is limited, and the default value is 10g.
+    Type: String
+  MaxInsertThreads:
+    AllowedValues:
+    - '1'
+    - '4'
+    - '8'
+    - '16'
+    Default: '4'
+    Description: The max_insert_threads for ClickHouse default users.xml // The maximum number of threads to run the INSERT SELECT query.
+    Type: String
+  DistributedProductMode:
+    AllowedValues:
+    - 'deny'
+    - 'local'
+    - 'global'
+    - 'allow'
+    Default: 'deny'
+    Description: The distributed_product_mode for ClickHouse default users.xml // ClickHouse applies this setting when the query contains the product of distributed tables, i.e. when the query for a distributed table contains a non-GLOBAL subquery for the distributed table.
+    Type: String
+  LoadBalancing:
+    AllowedValues:
+    - 'random'
+    - 'nearest_hostname'
+    - 'in_order'
+    - 'first_or_random'
+    Default: 'random'
+    Description: The load_balancing for ClickHouse default users.xml // Specifies the algorithm of replicas selection that is used for distributed query processing.
+    Type: String
+  MaxDataPartSize:
+    AllowedValues:
+    - '1073741824'
+    - '5368709120'
+    - '10737418240'
+    Default: '1073741824'
+    Description: The max_data_part_size_bytes for ClickHouse default storage.xml //  Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
+    Type: String
+  GrafanaVersion:
+    Default: 8.0.1-1
+    Description: Grafana version.
+    Type: String
+  DemoDataSize:
+    AllowedValues:
+    - 'none'
+    - 'small'
+    - 'medium'
+    - 'large'
+    Default: 'small'
+    Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
+    Type: String
+  ZookeeperPrivateIp1:
+    Type: String
+    Description: Zookeeper private IP 1.
+  ZookeeperPrivateIp2:
+    Type: String
+    Description: Zookeeper private IP 2.
+  ZookeeperPrivateIp3:
+    Type: String
+    Description: Zookeeper private IP 3.
+  CloudWatchAgentURL:
+    Description: For each download link, you can download and install the CloudWatch agent using the command line.
+    Type: String
+  InstanceRoleArn:
+    Description: For aws or aws-cn.
+    Type: String
+    Default: aws
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/.]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/).
+    Default: quickstart-clickhouse-cluster/
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slashes (/).
+    Type: String
+Mappings:
+  AWSRegion2AMI:
+    us-east-1:
+      HVM64: ami-00d1ab6b335f217cf
+    us-east-2:
+      HVM64: ami-08e6b682a466887dd
+    cn-north-1:
+      HVM64: ami-0429c857c8db3027a
+    cn-northwest-1:
+      HVM64: ami-062b4c21cde0e7371
+Conditions:
+  UseIops: 
+    Fn::Equals: [!Ref VolumeType,"io1"]
+  2NodesCondition: !Or 
+    - !Equals [!Ref 'ClickHouseNodeCount', '2'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '4'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '6'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '8']
+  4NodesCondition: !Or  
+    - !Equals [!Ref 'ClickHouseNodeCount', '4'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '6'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '8']
+  6NodesCondition: !Or 
+    - !Equals [!Ref 'ClickHouseNodeCount', '6'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '8']
+  8NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '8']
+Resources: 
+  ClickHouseMainLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: "ClickHouseLogGroup"
+      RetentionInDays: 90
+  ClickHouseInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - !Sub ec2.${AWS::URLSuffix}
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            - logs:DescribeLogStreams
+            Resource: !Sub arn:${InstanceRoleArn}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${ClickHouseMainLogGroup}:*
+          - Effect: Allow
+            Action: 
+            - s3:PutObjectAcl
+            - s3:GetObjectAcl
+            - s3:PutObject
+            - s3:GetObject
+            - s3:DeleteObject
+            - s3:RestoreObject
+            - s3:GetObjectVersion
+            - s3:DeleteObjectVersion
+            - s3:GetObjectRetention
+            - s3:PutObjectRetention
+            - s3:GetObjectVersionAcl
+            - s3:PutObjectVersionAcl
+            - s3:CreateBucket
+            - s3:ListAllMyBuckets
+            - s3:ListBucket
+            - s3:PutBucketVersioning
+            - s3:ListBucketVersions
+            - s3:PutBucketLogging
+            - s3:PutBucketAcl
+            - s3:GetBucketAcl
+            - s3:PutBucketPolicy
+            - s3:GetBucketPolicy
+            - s3:GetBucketLocation
+            - s3:PutEncryptionConfiguration
+            - s3:GetEncryptionConfiguration
+            - s3:GetBucketVersioning
+            - s3:GetLifecycleConfiguration     
+            - s3:GetIntelligentTieringConfiguration
+            - s3:PutIntelligentTieringConfiguration
+            - s3:PutLifecycleConfiguration
+            Resource: !Sub arn:${InstanceRoleArn}:s3:::*/*
+          - Effect: Allow
+            Action:
+            - ec2:CreateTags
+            - ec2:DeleteTags
+            Resource: !Sub arn:${InstanceRoleArn}:ec2:*:${AWS::AccountId}:instance/*
+          - Effect: Allow
+            Action:
+              - ec2:DescribeTags
+            Resource: '*'
+        PolicyName: ClickHouse-Instance-Role
+  ClickHouseInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+      - !Ref ClickHouseInstanceRole
+  ClickHouseAdmin: 
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse admin
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/tmp"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "ClickHouseClient",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseAdmin.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseAdmin --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PublicSubnetID1
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      - !Ref AdminServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            cfn-init -v --stack=${AWS::StackName} --resource=ArmAdminInstance  --region=${AWS::Region}
+
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /var/lib/clickhouse
+            sudo adduser --shell /bin/bash --gecos "" clickhouse<<EOF
+            Qwerty
+            Qwerty
+            EOF
+            sudo chown clickhouse.clickhouse -R /var/lib/clickhouse
+            sudo mount ${DeviceName} /var/lib/clickhouse/
+            echo "${DeviceName}  /var/lib/clickhouse/  xfs  defaults  0  0" >> /etc/fstab
+
+            cd /var/lib/clickhouse/
+            wget https://apt.llvm.org/llvm.sh
+            find /var/lib/clickhouse/ -name 'llvm.sh' | xargs perl -pi -e  's|LLVM_VERSION=12|LLVM_VERSION=11|g'
+            chmod +x llvm.sh
+            sudo bash -c ./llvm.sh
+
+            export CC=clang-11
+            export CXX=clang++-11
+
+            git clone --recursive https://github.com/ClickHouse/ClickHouse.git
+            cd ClickHouse
+            mkdir build-arm64
+            cmake . -Bbuild-arm64 -DUSE_STATIC_LIBRARIES=0 -DSPLIT_SHARED_LIBRARIES=1 -DCLICKHOUSE_SPLIT_BINARY=1
+            ninja -C build-arm64 clickhouse > ninja.out
+
+            cd ..
+            wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-${ClickHouseVersion}.tgz
+            wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-${ClickHouseVersion}.tgz
+            tar -xzvf clickhouse-client-${ClickHouseVersion}.tgz
+            tar -xzvf clickhouse-server-${ClickHouseVersion}.tgz
+            find /var/lib/clickhouse/clickhouse-server-${ClickHouseVersion}/install/ -name 'doinst.sh' | xargs perl -pi -e  's|done|done;rm -f /usr/bin/clickhouse-*;cp -r -f /var/lib/clickhouse/ClickHouse/build-arm64/programs/clickhouse-* /usr/bin/|g'
+
+            sudo chmod +x clickhouse-client-${ClickHouseVersion}/install/doinst.sh
+
+            mkdir -p /var/log/clickhouse-server
+            sudo chown clickhouse.clickhouse -R /var/log/clickhouse-server
+            sudo chown clickhouse.clickhouse -R /var/lib/clickhouse
+
+            sudo clickhouse-client-${ClickHouseVersion}/install/doinst.sh
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-admin,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            
+            # install grafana 
+            mkdir -p /home/ec2-user/tools/install/
+            cd /home/ec2-user/tools/install/
+            mkdir /home/ec2-user/tools/install/grafana
+
+            wget https://dl.grafana.com/oss/release/grafana-${GrafanaVersion}.x86_64.rpm
+            sudo yum install grafana-${GrafanaVersion}.x86_64.rpm -y
+            sleep 1
+
+            sudo grafana-cli plugins install vertamedia-clickhouse-datasource
+            find /etc/grafana/ -name 'grafana.ini' | xargs perl -pi -e  "s|;admin_password = admin|;admin_password = ${DBPassword}|g"
+            sudo systemctl stop grafana-server
+            sudo systemctl start grafana-server
+            sleep 1
+            sudo systemctl status grafana-server
+
+            # demo data
+            if [ ${DemoDataSize} = small ]; then
+                ontimefrom=1988
+                ontimeto=1989
+            elif [ ${DemoDataSize} = medium ]; then
+                ontimefrom=1988
+                ontimeto=1995
+            elif [ ${DemoDataSize} = large ]; then
+                ontimefrom=1988
+                ontimeto=2010
+            elif [ ${DemoDataSize} = no ]; then
+                ontimefrom=0
+                ontimeto=0
+            else
+                echo "Parameters not found or inaccessible."
+            fi
+
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/downloaddata.sh ./ --region ${AWS::Region}
+            mkdir -pv /home/ec2-user/tools/install/demodata
+            cd /home/ec2-user/tools/install/demodata
+            mv /home/ec2-user/downloaddata.sh .
+
+            sed -i "s|ontimefrom|$ontimefrom|" /home/ec2-user/tools/install/demodata/downloaddata.sh
+            sed -i "s|ontimeto|$ontimeto|" /home/ec2-user/tools/install/demodata/downloaddata.sh
+
+            chmod +x /home/ec2-user/tools/install/demodata/downloaddata.sh 
+            ./downloaddata.sh 
+            sleep 1
+
+            ls -1 *.zip | xargs -I{} -P $(nproc) bash -c "echo {}; unzip -cq {} '*.csv' | sed 's/\.00//g' | clickhouse-client --host $node1 --password $2 --input_format_with_names_use_header=0 --query='INSERT INTO ontime FORMAT CSVWithNames'"
+            sleep 1
+
+            cfn-signal -e $? --stack=${AWS::StackId} --resource=ArmAdminInstance --region=${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: 'ClickHouseAdminClient'
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT120M"
+  ClickHouseInstance1: 
+    Condition: 2NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse replica 1
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/home/clickhouse/data/"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "${ClickHouseNodeName1}",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseInstance1.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseInstance1 --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PrivateSubnetID1
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance1  --region ${AWS::Region}
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /home/clickhouse/data
+            sudo mount ${DeviceName} /home/clickhouse/data
+            echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard01-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /home/ec2-user/
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
+            chmod +x clickhouse-arm-install.sh
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance1 --region ${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: !Ref ClickHouseNodeName1
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  ClickHouseInstance2:
+    Condition: 2NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse instance replica 2
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/home/clickhouse/data/"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "${ClickHouseNodeName2}",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseInstance2.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseInstance2 --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PrivateSubnetID2
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance2  --region ${AWS::Region}
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /home/clickhouse/data
+            sudo mount ${DeviceName} /home/clickhouse/data
+            echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard01-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /home/ec2-user/
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
+            chmod +x clickhouse-arm-install.sh
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance2 --region ${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: !Ref ClickHouseNodeName2
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  ClickHouseInstance3: 
+    Condition: 4NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse replica 1
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/home/clickhouse/data/"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "${ClickHouseNodeName3}",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseInstance3.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseInstance3 --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PrivateSubnetID1
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance3  --region ${AWS::Region}
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /home/clickhouse/data
+            sudo mount ${DeviceName} /home/clickhouse/data
+            echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard02-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /home/ec2-user/
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
+            chmod +x clickhouse-arm-install.sh
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance3 --region ${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: !Ref ClickHouseNodeName3
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  ClickHouseInstance4: 
+    Condition: 4NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse instance replica 2
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/home/clickhouse/data/"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "${ClickHouseNodeName4}",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseInstance4.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseInstance4 --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PrivateSubnetID2
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance4  --region ${AWS::Region}
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /home/clickhouse/data
+            sudo mount ${DeviceName} /home/clickhouse/data
+            echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard02-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /home/ec2-user/
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
+            chmod +x clickhouse-arm-install.sh
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance4 --region ${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: !Ref ClickHouseNodeName4
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  ClickHouseInstance5: 
+    Condition: 6NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse replica 1
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/home/clickhouse/data/"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "${ClickHouseNodeName5}",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseInstance5.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseInstance5 --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PrivateSubnetID1
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance5  --region ${AWS::Region}
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /home/clickhouse/data
+            sudo mount ${DeviceName} /home/clickhouse/data
+            echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard03-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /home/ec2-user/
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region} 
+            chmod +x clickhouse-arm-install.sh
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance5 --region ${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: !Ref ClickHouseNodeName5
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  ClickHouseInstance6: 
+    Condition: 6NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse instance replica 2
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/home/clickhouse/data/"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "${ClickHouseNodeName6}",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseInstance6.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PrivateSubnetID2
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance6  --region ${AWS::Region}
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /home/clickhouse/data
+            sudo mount ${DeviceName} /home/clickhouse/data
+            echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard03-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /home/ec2-user/
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
+            chmod +x clickhouse-arm-install.sh
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: !Ref ClickHouseNodeName6
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  ClickHouseInstance7: 
+    Condition: 8NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse replica 1
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/home/clickhouse/data/"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "${ClickHouseNodeName7}",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseInstance7.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseInstance7 --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PrivateSubnetID1
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance7  --region ${AWS::Region}
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /home/clickhouse/data
+            sudo mount ${DeviceName} /home/clickhouse/data
+            echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard04-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /home/ec2-user/
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
+            chmod +x clickhouse-arm-install.sh
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance7 --region ${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: !Ref ClickHouseNodeName7
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  ClickHouseInstance8: 
+    Condition: 8NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install ClickHouse instance replica 2
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref ClickHouseInstanceRole
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 1,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "namespace": "ClickHouseNamespace",
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "cpu": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
+                          {"name": "cpu_usage_nice", "unit": "Percent"},
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": true,
+                        "metrics_collection_interval": 10
+                      },
+                      "disk": {
+                        "resources": [
+                          "/",
+                          "/home/clickhouse/data/"
+                        ],
+                        "measurement": [
+                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": [
+                          "sysfs", "devtmpfs"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "diskio": {
+                        "resources": [
+                          "*"
+                        ],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      },
+                      "net": {
+                        "resources": [
+                          "eth0"
+                        ],
+                        "measurement": [
+                          "bytes_sent",
+                          "bytes_recv",
+                          "drop_in",
+                          "drop_out"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "force_flush_interval": 5,
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/clickhouse-server/clickhouse-server.log",
+                            "log_group_name": "${ClickHouseMainLogGroup}",
+                            "log_stream_name": "${ClickHouseNodeName8}",
+                            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ClickHouseInstance8.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseInstance8 --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: |
+                systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: |
+                systemctl start cfn-hup.service
+    Properties:
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref ClickHouseInstanceProfile
+      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      InstanceType: !Ref ClickHouseInstanceType
+      SubnetId: !Ref PrivateSubnetID2
+      SecurityGroupIds:
+      - !Ref ClickHouseServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !Ref DeviceName
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install git cmake python3 ninja-build -y
+            sudo apt install awscli<<EOF
+            Y
+            EOF
+
+            apt install python3-pip -y
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+
+            wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
+            ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+            cd /root/aws-cfn-bootstrap-2.0
+            python3 setup.py build
+            python3 setup.py install
+            ln -s /usr/local/bin/ /opt/aws/bin
+
+            cd /root/
+
+            wget ${CloudWatchAgentURL}
+            sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance8  --region ${AWS::Region}
+            sudo mkfs.xfs ${DeviceName}
+            sudo mkdir -p /home/clickhouse/data
+            sudo mount ${DeviceName} /home/clickhouse/data
+            echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard04-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /home/ec2-user/
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
+            chmod +x clickhouse-arm-install.sh
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" > ch-install.log
+
+            chmod +r /home/ec2-user/create-table-demo.sql
+            flag=600
+            while((flag > 0))
+            do
+            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            if [ $? -eq 0 ]
+            then
+                echo "ClickHouse is running"
+                break
+            fi
+            let flag--
+            sleep 1
+            done
+            
+            echo "Begin to create demo table"
+            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region}
+      Tags:
+      - Key: Name
+        Value: !Ref ClickHouseNodeName8
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+Outputs:
+  ClickHouseInstanceID1:
+    Condition: 2NodesCondition
+    Description: ClickHouse instance
+    Value: !Ref ClickHouseInstance1
+  ClickHousePrivateIp1:
+    Condition: 2NodesCondition
+    Value: !GetAtt ClickHouseInstance1.PrivateIp
+  ClickHouseInstanceID2:
+    Condition: 2NodesCondition
+    Description: ClickHouse instance
+    Value: !Ref ClickHouseInstance2
+  ClickHousePrivateIp2:
+    Condition: 2NodesCondition
+    Value: !GetAtt ClickHouseInstance2.PrivateIp
+  ClickHouseInstanceID3:
+    Condition: 4NodesCondition
+    Description: ClickHouse instance
+    Value: !Ref ClickHouseInstance3
+  ClickHousePrivateIp3:
+    Condition: 4NodesCondition
+    Value: !GetAtt ClickHouseInstance3.PrivateIp
+  ClickHouseInstanceID4:
+    Condition: 4NodesCondition
+    Description: ClickHouse instance
+    Value: !Ref ClickHouseInstance4
+  ClickHousePrivateIp4:
+    Condition: 4NodesCondition
+    Value: !GetAtt ClickHouseInstance4.PrivateIp
+  ClickHouseInstanceID5:
+    Condition: 6NodesCondition
+    Description: ClickHouse instance
+    Value: !Ref ClickHouseInstance5
+  ClickHousePrivateIp5:
+    Condition: 6NodesCondition
+    Value: !GetAtt ClickHouseInstance5.PrivateIp
+  ClickHouseInstanceID6:
+    Condition: 6NodesCondition
+    Description: ClickHouse instance
+    Value: !Ref ClickHouseInstance6
+  ClickHousePrivateIp6:
+    Condition: 6NodesCondition
+    Value: !GetAtt ClickHouseInstance6.PrivateIp
+  ClickHouseInstanceID7:
+    Condition: 8NodesCondition
+    Description: ClickHouse instance
+    Value: !Ref ClickHouseInstance7
+  ClickHousePrivateIp7:
+    Condition: 8NodesCondition
+    Value: !GetAtt ClickHouseInstance7.PrivateIp
+  ClickHouseInstanceID8:
+    Condition: 8NodesCondition
+    Description: ClickHouse instance
+    Value: !Ref ClickHouseInstance8
+  ClickHousePrivateIp8:
+    Condition: 8NodesCondition
+    Value: !GetAtt ClickHouseInstance8.PrivateIp
+  ImageId:
+    Value: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]

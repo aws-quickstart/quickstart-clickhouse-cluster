@@ -1,0 +1,1194 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: (SO8019) - This template is used for setting up Clickhouse CloudWatch Dashboard. (qs-xxxxxxxxx)
+
+Metadata:
+  LICENSE: Apache License Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: CloudWatch dashboard configuration
+      Parameters:
+      - DashboardName
+    - Label:
+        default: ClickHouse configuration
+      Parameters:
+      - ClickHouseNodeCount
+      - ClickHouseInstanceID1
+      - ClickHouseInstanceID2
+      - ClickHouseInstanceID3
+      - ClickHouseInstanceID4
+      - ClickHouseInstanceID5
+      - ClickHouseInstanceID6
+      - ClickHouseInstanceID7
+      - ClickHouseInstanceID8
+      - ClickHouseImageId
+      - ClickHouseInstanceType
+      - ZookeeperInstanceID1
+      - ZookeeperInstanceID2
+      - ZookeeperInstanceID3
+      - ZookeeperImageId
+      - ZookeeperInstanceType
+    ParameterLabels:
+      DashboardName:
+        default: CloudWatch dashboard name
+      ClickHouseNodeCount:
+        default: ClickHouse node count
+      ClickHouseInstanceID1:
+        default: ClickHouse instance ID 1
+      ClickHouseInstanceID2:
+        default: ClickHouse instance ID 2
+      ClickHouseInstanceID3:
+        default: ClickHouse instance ID 3
+      ClickHouseInstanceID4:
+        default: ClickHouse instance ID 4
+      ClickHouseInstanceID5:
+        default: ClickHouse instance ID 5
+      ClickHouseInstanceID6:
+        default: ClickHouse instance ID 6
+      ClickHouseInstanceID7:
+        default: ClickHouse instance ID 7
+      ClickHouseInstanceID8:
+        default: ClickHouse instance ID 8
+      ClickHouseImageId:
+        default: ClickHouse image id
+      ClickHouseInstanceType:
+        default: ClickHouse instance type
+      ZookeeperInstanceID1:
+        default: Zookeeper instance ID 1
+      ZookeeperInstanceID2:
+        default: Zookeeper instance ID 2
+      ZookeeperInstanceID3:
+        default: Zookeeper instance ID 3
+      ZookeeperImageId:
+        default: Zookeeper image id
+      ZookeeperInstanceType:
+        default: Zookeeper instance type
+Parameters:
+  DashboardName:
+    Description: CloudWatch dashboard name.
+    Type: String
+  ClickHouseNodeCount:
+    Type: String
+    Description: ClickHouse node count.
+  ClickHouseInstanceID1:
+    Description: ClickHouse instance ID.
+    Type: String
+  ClickHouseInstanceID2:
+    Description: ClickHouse instance ID.
+    Type: String
+  ClickHouseInstanceID3:
+    Description: ClickHouse instance ID.
+    Default: ''
+    Type: String
+  ClickHouseInstanceID4:
+    Description: ClickHouse instance ID.
+    Default: ''
+    Type: String
+  ClickHouseInstanceID5:
+    Description: ClickHouse instance ID.
+    Default: ''
+    Type: String
+  ClickHouseInstanceID6:
+    Description: ClickHouse instance ID.
+    Default: ''
+    Type: String
+  ClickHouseInstanceID7:
+    Description: ClickHouse instance ID.
+    Default: ''
+    Type: String
+  ClickHouseInstanceID8:
+    Description: ClickHouse instance ID.
+    Default: ''
+    Type: String
+  ClickHouseImageId:
+    Description: ClickHouse EC2 image ID.
+    Type: String
+  ClickHouseInstanceType:
+    Type: String
+    Description: ClickHouse instance type.
+  ZookeeperInstanceID1:
+    Description: Zookeeper instance ID.
+    Type: String
+  ZookeeperInstanceID2:
+    Description: Zookeeper instance ID.
+    Type: String
+  ZookeeperInstanceID3:
+    Description: Zookeeper instance ID.
+    Type: String
+  ZookeeperImageId:
+    Description: Zookeeper EC2 image ID.
+    Type: String
+  ZookeeperInstanceType:
+    Type: String
+    Description: Zookeeper instance type.
+Conditions:
+  2NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '2']
+  4NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '4'] 
+  6NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '6'] 
+  8NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '8']
+Resources:
+  CloudWatchDashboard2Nodes:
+    Condition: 2NodesCondition
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type":"metric",
+              "x":0,
+              "y":0,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance CPU"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":0,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Mem"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":6,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Disk"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":6,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance DiskIO"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":12,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Network"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                  "region": "${AWS::Region}",
+                  "title": "ClickHouse Cluster Application Log",
+                  "query": "SOURCE 'ClickHouseLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "view": "table"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":18,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance CPU"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":18,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Mem"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":24,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Disk"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":24,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance DiskIO"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":30,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Network"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 30,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                  "region": "${AWS::Region}",
+                  "title": "Zookeeper Cluster Application Log",
+                  "query": "SOURCE 'ZookeeperLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "view": "table"
+              }
+            }
+          ]
+        }
+  CloudWatchDashboard4Nodes:
+    Condition: 4NodesCondition
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type":"metric",
+              "x":0,
+              "y":0,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance CPU"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":0,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Mem"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":6,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Disk"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":6,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance DiskIO"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":12,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Network"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                  "region": "${AWS::Region}",
+                  "title": "ClickHouse Cluster Application Log",
+                  "query": "SOURCE 'ClickHouseLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "view": "table"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":18,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance CPU"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":18,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Mem"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":24,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Disk"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":24,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance DiskIO"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":30,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Network"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 30,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                  "region": "${AWS::Region}",
+                  "title": "Zookeeper Cluster Application Log",
+                  "query": "SOURCE 'ZookeeperLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "view": "table"
+              }
+            }
+          ]
+        }
+  CloudWatchDashboard6Nodes:
+    Condition: 6NodesCondition
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type":"metric",
+              "x":0,
+              "y":0,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance CPU"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":0,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Mem"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":6,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Disk"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":6,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance DiskIO"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":12,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Network"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                  "region": "${AWS::Region}",
+                  "title": "ClickHouse Cluster Application Log",
+                  "query": "SOURCE 'ClickHouseLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "view": "table"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":18,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance CPU"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":18,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Mem"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":24,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Disk"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":24,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance DiskIO"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":30,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Network"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 30,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                  "region": "${AWS::Region}",
+                  "title": "Zookeeper Cluster Application Log",
+                  "query": "SOURCE 'ZookeeperLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "view": "table"
+              }
+            }
+          ]
+        }
+  CloudWatchDashboard8Nodes:
+    Condition: 8NodesCondition
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type":"metric",
+              "x":0,
+              "y":0,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_nice", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_guest", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "cpu_usage_idle", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance CPU"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":0,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "mem_used_percent", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Mem"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":6,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_free", "path", "/", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ClickHouseNamespace", "disk_used", "path", "/", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "device", "xvda1", "fstype", "xfs"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Disk"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":6,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance DiskIO"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":12,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_sent", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID5}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID6}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID7}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"],
+                  ["ClickHouseNamespace", "net_bytes_recv", "InstanceId", "${ClickHouseInstanceID8}", "ImageId", "${ClickHouseImageId}", "InstanceType", "${ClickHouseInstanceType}", "interface", "eth0"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"ClickHouse Cluster EC2 Instance Network"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                  "region": "${AWS::Region}",
+                  "title": "ClickHouse Cluster Application Log",
+                  "query": "SOURCE 'ClickHouseLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "view": "table"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":18,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_nice", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_guest", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "cpu_usage_idle", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "cpu", "cpu-total", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance CPU"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":18,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "mem_used_percent", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Mem"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":24,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_used", "path", "/", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"],
+                  ["ZookeeperNamespace", "disk_free", "path", "/", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "device", "xvda1", "fstype", "xfs"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Disk"
+              }
+            },
+            {
+              "type":"metric",
+              "x":12,
+              "y":24,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_writes", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"],
+                  ["ZookeeperNamespace", "diskio_reads", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "name", "nvme0n1", "InstanceType", "${ZookeeperInstanceType}"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance DiskIO"
+              }
+            },
+            {
+              "type":"metric",
+              "x":0,
+              "y":30,
+              "width":12,
+              "height":6,
+              "properties":{
+                "metrics":[
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_sent", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID1}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID2}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"],
+                  ["ZookeeperNamespace", "net_bytes_recv", "InstanceId", "${ZookeeperInstanceID3}", "ImageId", "${ZookeeperImageId}", "InstanceType", "${ZookeeperInstanceType}", "interface", "eth0"]
+                ],
+                "period":300,
+                "stat":"Average",
+                "region":"${AWS::Region}",
+                "title":"Zookeeper Cluster EC2 Instance Network"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 30,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                  "region": "${AWS::Region}",
+                  "title": "Zookeeper Cluster Application Log",
+                  "query": "SOURCE 'ZookeeperLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "view": "table"
+              }
+            }
+          ]
+        }

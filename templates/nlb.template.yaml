@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: (SO8019) - This stack deploys NLB for ClickHouse cluster. (qs-xxxxxxxxx)
+
+Metadata:
+  LICENSE: Apache License Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network configuration
+      Parameters:
+      - VPCID
+      - Subnets
+      - NodeCount
+      - Port
+      - EC2Instance1
+      - EC2Instance2
+      - EC2Instance3
+      - EC2Instance4
+    ParameterLabels:
+      VPCID:
+        default: VPC ID
+      Subnets:
+        default: Subnets
+      NodeCount:
+        default: Node count
+      Port:
+        default: Service port
+      EC2Instance1:
+        default: EC2 instance id 1
+      EC2Instance2:
+        default: EC2 instance id 2
+      EC2Instance3:
+        default: EC2 instance id 3
+      EC2Instance4:
+        default: EC2 instance id 4
+Parameters:
+  VPCID:
+    Description: VPC in which ELB will be placed.
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnets in which ELB will be created. Select all AZs/Subnet.
+  NodeCount:
+    Type: String
+    Description: Node count.
+    Default: 2
+  Port:
+    Type: String
+    Description: Service port.
+    Default: 8123
+  EC2Instance1:
+    Type: String
+    Description: Choose EC2 instance.
+    Default: 1
+  EC2Instance2:
+    Type: String
+    Description: Choose EC2 instance.
+    Default: 2
+  EC2Instance3:
+    Type: String
+    Description: Choose EC2 instance.
+    Default: 3
+  EC2Instance4:
+    Type: String
+    Description: Choose EC2 instance.
+    Default: 4
+Conditions:
+  2NodesCondition: !Equals [!Ref 'NodeCount', '2']
+  4NodesCondition: !Equals [!Ref 'NodeCount', '4'] 
+  6NodesCondition: !Equals [!Ref 'NodeCount', '6'] 
+  8NodesCondition: !Equals [!Ref 'NodeCount', '8']
+Resources:
+  ServiceLoadBalancerPrivate:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${VPCID}-Nlb
+      Scheme: internal
+      Subnets: !Ref Subnets
+      Type: network
+      IpAddressType: ipv4
+      LoadBalancerAttributes:
+        - Key: load_balancing.cross_zone.enabled
+          Value: "true"
+      Tags:
+      - Key: Name
+        Value: !Sub ${VPCID}-Nlb
+  # A default target group is used to setup the Nlb to just drop traffic
+  # initially, before any real service target groups have been added.
+  NetworkLoadBalancerTargetGroup2Nodes:
+    Condition: 2NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${VPCID}-Nlb-target
+      Port: !Ref Port
+      Protocol: TCP
+      VpcId: !Ref VPCID
+      Targets:
+      - Id: !Ref EC2Instance1
+        Port: !Ref Port  
+  ServiceLoadBalancerListener2Nodes:
+    Condition: 2NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ServiceLoadBalancerPrivate
+      Port: !Ref Port  
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup2Nodes
+  NetworkLoadBalancerTargetGroup4Nodes:
+    Condition: 4NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${VPCID}-Nlb-target
+      Port: !Ref Port
+      Protocol: TCP
+      VpcId: !Ref VPCID
+      Targets:
+      - Id: !Ref EC2Instance1
+        Port: !Ref Port  
+      - Id: !Ref EC2Instance2
+        Port: !Ref Port 
+  ServiceLoadBalancerListener4Nodes:
+    Condition: 4NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ServiceLoadBalancerPrivate
+      Port: !Ref Port  
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup4Nodes
+  NetworkLoadBalancerTargetGroup6Nodes:
+    Condition: 6NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${VPCID}-Nlb-target
+      Port: !Ref Port
+      Protocol: TCP
+      VpcId: !Ref VPCID
+      Targets:
+      - Id: !Ref EC2Instance1
+        Port: !Ref Port  
+      - Id: !Ref EC2Instance2
+        Port: !Ref Port 
+      - Id: !Ref EC2Instance3
+        Port: !Ref Port
+  ServiceLoadBalancerListener6Nodes:
+    Condition: 6NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ServiceLoadBalancerPrivate
+      Port: !Ref Port  
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup6Nodes
+  NetworkLoadBalancerTargetGroup8Nodes:
+    Condition: 8NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${VPCID}-Nlb-target
+      Port: !Ref Port
+      Protocol: TCP
+      VpcId: !Ref VPCID
+      Targets:
+      - Id: !Ref EC2Instance1
+        Port: !Ref Port  
+      - Id: !Ref EC2Instance2
+        Port: !Ref Port 
+      - Id: !Ref EC2Instance3
+        Port: !Ref Port  
+      - Id: !Ref EC2Instance4
+        Port: !Ref Port
+  ServiceLoadBalancerListener8Nodes:
+    Condition: 8NodesCondition
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ServiceLoadBalancerPrivate
+      Port: !Ref Port  
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup8Nodes
+Outputs:
+  ElbDNSName: 
+    Value: !GetAtt  ServiceLoadBalancerPrivate.DNSName

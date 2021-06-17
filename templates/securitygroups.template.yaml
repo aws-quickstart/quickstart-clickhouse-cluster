@@ -1,32 +1,69 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: Clickhouse Security Groups template
+Description: (SO8019) - This template is used for setting up Security Groups. (qs-xxxxxxxxx)
+
+Metadata:
+  LICENSE: Apache License Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network configuration
+      Parameters:
+      - AccessCIDR
+      - VPCID
+      - VPCCIDR
+      - BastionSecurityGroupID
+    ParameterLabels:
+      AccessCIDR:
+        default: Access CIDR
+      VPCID:
+        default: VPC ID
+      VPCCIDR:
+        default: VPC CIDR
+      BastionSecurityGroupID:
+        default: Bastion security group ID
 Parameters:
   AccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
     Description: 'The CIDR IP range that is permitted to access. Note: a value of
-      0.0.0.0/0 will allow access from ANY ip address'
+      0.0.0.0/0 will allow access from ANY ip address.'
     Type: String
   VPCID:
-    Description: VPC ID of your existing Virtual Private Cloud (VPC) where you want
+    Description: VPC ID of your existing Virtual Private Cloud (VPC) where you want.
       to depoy RDS.
     Type: AWS::EC2::VPC::Id
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
-    Description: The CIDR block for VPC
+    Description: The CIDR block for VPC.
     Type: String
   BastionSecurityGroupID:
-    Description: The BastionSecurityGroupID range that is permitted to access
+    Description: The BastionSecurityGroupID range that is permitted to access.
     Type: String
 Resources:
   ClickHouseServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow access to ClickHouse Port 
+      GroupDescription: Allow access to ClickHouse port.
       VpcId: !Ref VPCID
       SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 2181
+        ToPort: 2181
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 2888
+        ToPort: 2888
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 3888
+        ToPort: 3888
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 9000
+        ToPort: 9000
+        CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
         FromPort: 8123
         ToPort: 8123
@@ -51,7 +88,7 @@ Resources:
   AdminServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: App Server Security Group 
+      GroupDescription: App server security group.
       VpcId: !Ref VPCID
       SecurityGroupIngress:
       - IpProtocol: tcp
@@ -65,11 +102,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: 3000
         ToPort: 3000
-        CidrIp: !Ref AccessCIDR
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        CidrIp: !Ref AccessCIDR       
+        CidrIp: !Ref AccessCIDR  
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 0
@@ -82,4 +115,3 @@ Outputs:
   AdminServerSecurityGroup:
     Description: Admin Server Security Group
     Value: !Ref AdminServerSecurityGroup
-...
