@@ -272,6 +272,52 @@ Resources:
             Action:
               - ec2:DescribeTags
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - cloudwatch:PutDashboard
+              - cloudwatch:DeleteAlarms
+              - cloudwatch:DeleteInsightRules
+              - cloudwatch:StartMetricStreams
+              - cloudwatch:UntagResource
+              - cloudwatch:ListTagsForResource
+              - cloudwatch:GetDashboard
+              - cloudwatch:GetInsightRuleReport
+              - cloudwatch:DisableInsightRules
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:GetMetricStream
+              - cloudwatch:DeleteDashboards
+              - cloudwatch:DescribeAlarmHistory
+              - cloudwatch:StopMetricStreams
+              - cloudwatch:DisableAlarmActions
+              - cloudwatch:DeleteMetricStream
+              - cloudwatch:SetAlarmState
+              - cloudwatch:EnableInsightRules
+              - cloudwatch:PutCompositeAlarm
+              - cloudwatch:PutMetricStream
+              - cloudwatch:PutInsightRule
+              - cloudwatch:TagResource
+              - cloudwatch:PutMetricAlarm
+              - cloudwatch:EnableAlarmActions
+            Resource: 
+              - !Sub arn:${InstanceRoleArn}:cloudwatch::${AWS::AccountId}:dashboard/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:alarm:*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:insight-rule/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:metric-stream/*
+          - Effect: Allow
+            Action:
+              - cloudwatch:DescribeInsightRules
+              - cloudwatch:PutMetricData
+              - cloudwatch:GetMetricData
+              - cloudwatch:ListMetricStreams
+              - cloudwatch:DescribeAlarmsForMetric
+              - cloudwatch:ListDashboards
+              - cloudwatch:PutAnomalyDetector
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:GetMetricWidgetImage
+              - cloudwatch:DeleteAnomalyDetector
+              - cloudwatch:ListMetrics
+              - cloudwatch:DescribeAnomalyDetectors
+            Resource: '*'
         PolicyName: Zookeeper-Instance-Role
   ZookeeperInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -499,6 +545,13 @@ Resources:
               let flag--
               sleep 1
             done
+
+            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+            rm -rf /home/ec2-user/apache-zookeeper-${ZookeeperVersion}-bin.tar.gz
+            rm -rf /home/ec2-user/zookeeper-install.sh
+            rm -rf /home/ec2-user/find-zookeeper-node.py
+            rm -rf /home/ec2-user/instancelist
+            rm -rf /home/ec2-user/result
 
             echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
             chmod +x /home/ec2-user/zk-start.sh
@@ -735,6 +788,13 @@ Resources:
               let flag--
               sleep 1
             done
+
+            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+            rm -rf /home/ec2-user/apache-zookeeper-${ZookeeperVersion}-bin.tar.gz
+            rm -rf /home/ec2-user/zookeeper-install.sh
+            rm -rf /home/ec2-user/find-zookeeper-node.py
+            rm -rf /home/ec2-user/instancelist
+            rm -rf /home/ec2-user/result
 
             echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
             chmod +x /home/ec2-user/zk-start.sh
@@ -973,13 +1033,13 @@ Resources:
               let flag--
               sleep 1
             done
-            # Clean
-            rm -rf instancelist
-            rm -rf result
+            
+            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+            rm -rf /home/ec2-user/apache-zookeeper-${ZookeeperVersion}-bin.tar.gz
             rm -rf /home/ec2-user/zookeeper-install.sh
             rm -rf /home/ec2-user/find-zookeeper-node.py
-            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
-            rm -rf /home/ec2-user/apache-zookeeper-3.5.9-bin.tar.gz
+            rm -rf /home/ec2-user/instancelist
+            rm -rf /home/ec2-user/result
 
             echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
             chmod +x /home/ec2-user/zk-start.sh

@@ -386,14 +386,13 @@ Parameters:
 Mappings:
   AWSRegion2AMI:
     us-east-1:
-      HVM64: ami-0d5eff06f840b45e9
+      HVM64: ami-0aeeebd8d2ab47354
     us-east-2:
-      HVM64: ami-077e31c4939f6a2f3
-      #HVM64: ami-09c84c6043ea24239
+      HVM64: ami-0d8d212151031f51c
     cn-north-1:
-      HVM64: ami-0c52e2685c7218558
+      HVM64: ami-0cc197a96f4583f55
     cn-northwest-1:
-      HVM64: ami-05b9b6d6acf8ae9b6
+      HVM64: ami-050d3cee094f16bfa
 Conditions:
   UseIops: 
     Fn::Equals: [!Ref VolumeType,"io1"]
@@ -479,6 +478,52 @@ Resources:
           - Effect: Allow
             Action:
               - ec2:DescribeTags
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - cloudwatch:PutDashboard
+              - cloudwatch:DeleteAlarms
+              - cloudwatch:DeleteInsightRules
+              - cloudwatch:StartMetricStreams
+              - cloudwatch:UntagResource
+              - cloudwatch:ListTagsForResource
+              - cloudwatch:GetDashboard
+              - cloudwatch:GetInsightRuleReport
+              - cloudwatch:DisableInsightRules
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:GetMetricStream
+              - cloudwatch:DeleteDashboards
+              - cloudwatch:DescribeAlarmHistory
+              - cloudwatch:StopMetricStreams
+              - cloudwatch:DisableAlarmActions
+              - cloudwatch:DeleteMetricStream
+              - cloudwatch:SetAlarmState
+              - cloudwatch:EnableInsightRules
+              - cloudwatch:PutCompositeAlarm
+              - cloudwatch:PutMetricStream
+              - cloudwatch:PutInsightRule
+              - cloudwatch:TagResource
+              - cloudwatch:PutMetricAlarm
+              - cloudwatch:EnableAlarmActions
+            Resource: 
+              - !Sub arn:${InstanceRoleArn}:cloudwatch::${AWS::AccountId}:dashboard/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:alarm:*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:insight-rule/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:metric-stream/*
+          - Effect: Allow
+            Action:
+              - cloudwatch:DescribeInsightRules
+              - cloudwatch:PutMetricData
+              - cloudwatch:GetMetricData
+              - cloudwatch:ListMetricStreams
+              - cloudwatch:DescribeAlarmsForMetric
+              - cloudwatch:ListDashboards
+              - cloudwatch:PutAnomalyDetector
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:GetMetricWidgetImage
+              - cloudwatch:DeleteAnomalyDetector
+              - cloudwatch:ListMetrics
+              - cloudwatch:DescribeAnomalyDetectors
             Resource: '*'
         PolicyName: ClickHouse-Instance-Role
   ClickHouseInstanceProfile:
