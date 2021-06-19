@@ -60,7 +60,7 @@ echo "                <user>default</user>" >> /etc/clickhouse-server/metrika.xm
 echo "                <password>${11}</password>" >> /etc/clickhouse-server/metrika.xml
 echo "             </replica>" >> /etc/clickhouse-server/metrika.xml
 echo "        </shard>" >> /etc/clickhouse-server/metrika.xml
-if [ $2 -eq 4 ]
+if [ $2 -ge 4 ]
 then
     echo "        <shard>" >> /etc/clickhouse-server/metrika.xml
     echo "             <internal_replication>true</internal_replication>" >> /etc/clickhouse-server/metrika.xml
@@ -77,7 +77,9 @@ then
     echo "                <password>${11}</password>" >> /etc/clickhouse-server/metrika.xml
     echo "             </replica>" >> /etc/clickhouse-server/metrika.xml
     echo "        </shard>" >> /etc/clickhouse-server/metrika.xml
-elif [ $2 -eq 6 ]
+fi
+
+if [ $2 -ge 6 ]
 then
     echo "        <shard>" >> /etc/clickhouse-server/metrika.xml
     echo "             <internal_replication>true</internal_replication>" >> /etc/clickhouse-server/metrika.xml
@@ -94,7 +96,9 @@ then
     echo "                <password>${11}</password>" >> /etc/clickhouse-server/metrika.xml
     echo "             </replica>" >> /etc/clickhouse-server/metrika.xml
     echo "        </shard>" >> /etc/clickhouse-server/metrika.xml
-elif [ $2 -eq 8 ]
+fi
+
+if [ $2 -ge 8 ]
 then
     echo "        <shard>" >> /etc/clickhouse-server/metrika.xml
     echo "             <internal_replication>true</internal_replication>" >> /etc/clickhouse-server/metrika.xml
