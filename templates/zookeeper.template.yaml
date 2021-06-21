@@ -8,7 +8,8 @@ Metadata:
     - Label:
         default: Network configuration
       Parameters:
-      - PrivateSubnetID
+      - PrivateSubnetID1
+      - PrivateSubnetID2
     - Label:
         default: EC2 configuration
       Parameters:
@@ -36,8 +37,10 @@ Metadata:
       - QSS3BucketName
       - QSS3KeyPrefix
     ParameterLabels:
-      PrivateSubnetID:
-        default: Private subnet ID
+      PrivateSubnetID1:
+        default: Private subnet ID 1
+      PrivateSubnetID2:
+        default: Private subnet ID 2
       ZookeeperServerSecurityGroupID:
         default: Zookeeper server security group
       KeyPairName:
@@ -73,8 +76,11 @@ Metadata:
       QSS3KeyPrefix:
         default: S3 key prefix for the Quick Start assets
 Parameters: 
-  PrivateSubnetID: 
-    Description: Private subnet Id.
+  PrivateSubnetID1: 
+    Description: Private subnet ID 1.
+    Type: String
+  PrivateSubnetID2: 
+    Description: Private subnet ID 2.
     Type: String
   ZookeeperServerSecurityGroupID: 
     Description: ID of the Zookeeper server access security group (e.g., sg-7f16e910).
@@ -493,7 +499,7 @@ Resources:
       IamInstanceProfile: !Ref ZookeeperInstanceProfile
       ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       InstanceType: !Ref ZookeeperInstanceType
-      SubnetId: !Ref PrivateSubnetID
+      SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
       - !Ref ZookeeperServerSecurityGroupID
       BlockDeviceMappings:
@@ -736,7 +742,7 @@ Resources:
       IamInstanceProfile: !Ref ZookeeperInstanceProfile
       ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       InstanceType: !Ref ZookeeperInstanceType
-      SubnetId: !Ref PrivateSubnetID
+      SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
       - !Ref ZookeeperServerSecurityGroupID
       BlockDeviceMappings:
@@ -979,7 +985,7 @@ Resources:
       IamInstanceProfile: !Ref ZookeeperInstanceProfile
       ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       InstanceType: !Ref ZookeeperInstanceType
-      SubnetId: !Ref PrivateSubnetID
+      SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
       - !Ref ZookeeperServerSecurityGroupID
       BlockDeviceMappings:

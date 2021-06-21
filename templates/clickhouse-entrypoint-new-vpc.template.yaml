@@ -653,10 +653,14 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PrivateSubnetID:
+        PrivateSubnetID1:
           Fn::GetAtt: 
             - VPCStack
             - Outputs.PrivateSubnet1AID
+        PrivateSubnetID2:
+          Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet2AID
         KeyPairName: !Ref KeyPairName
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
         ZookeeperVersion: !Ref ZookeeperVersion
