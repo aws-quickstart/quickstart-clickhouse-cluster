@@ -434,7 +434,7 @@ Parameters:
     - 'local'
     - 'global'
     - 'allow'
-    Default: 'deny'
+    Default: 'global'
     Description: The distributed_product_mode for ClickHouse default users.xml // ClickHouse applies this setting when the query contains the product of distributed tables, i.e. when the query for a distributed table contains a non-GLOBAL subquery for the distributed table.
     Type: String
   LoadBalancing:

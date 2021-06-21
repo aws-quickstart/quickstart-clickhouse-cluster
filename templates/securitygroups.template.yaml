@@ -65,6 +65,10 @@ Resources:
         ToPort: 9000
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
+        FromPort: 9009
+        ToPort: 9009
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
         FromPort: 8123
         ToPort: 8123
         CidrIp: !Ref VPCCIDR
