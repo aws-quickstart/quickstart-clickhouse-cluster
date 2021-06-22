@@ -430,7 +430,7 @@ Parameters:
     - 'nearest_hostname'
     - 'in_order'
     - 'first_or_random'
-    Default: 'random'
+    Default: 'nearest_hostname'
     Description: The load_balancing for ClickHouse default users.xml. Specifies the algorithm of replicas selection that is used for distributed query processing.
     Type: String
   MaxDataPartSize:
