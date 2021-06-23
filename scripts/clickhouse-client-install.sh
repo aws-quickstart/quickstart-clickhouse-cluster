@@ -200,7 +200,7 @@ elif [ $5 = medium ]; then
 elif [ $5 = large ]; then
     ontimefrom=1988
     ontimeto=2010
-elif [ $5 = no ]; then
+elif [ $5 = none ]; then
     ontimefrom=0
     ontimeto=0
 else

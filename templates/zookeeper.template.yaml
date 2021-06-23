@@ -197,14 +197,13 @@ Parameters:
 Mappings:
   AWSRegion2AMI:
     us-east-1:
-      HVM64: ami-0d5eff06f840b45e9
+      HVM64: ami-0aeeebd8d2ab47354
     us-east-2:
-      HVM64: ami-077e31c4939f6a2f3
-      #HVM64: ami-09c84c6043ea24239
+      HVM64: ami-0d8d212151031f51c
     cn-north-1:
-      HVM64: ami-0c52e2685c7218558
+      HVM64: ami-0cc197a96f4583f55
     cn-northwest-1:
-      HVM64: ami-05b9b6d6acf8ae9b6
+      HVM64: ami-050d3cee094f16bfa
 Conditions:
   UseIops: 
     Fn::Equals: [!Ref VolumeType,"io1"]
@@ -379,18 +378,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -622,18 +621,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -865,18 +864,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],

@@ -6,8 +6,13 @@ wget https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-linux-x64-14_
 tar -xvf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
 sudo ln -s /home/ec2-user/java-se-8u41-ri/bin/java /usr/local/bin/java
 sudo ln -s /home/ec2-user/java-se-8u41-ri/bin/java /usr/bin/java
+
 wget http://mirrors.hust.edu.cn/apache/zookeeper/stable/apache-zookeeper-${1}-bin.tar.gz ./
-sudo tar -xvf /home/ec2-user/apache-zookeeper-${1}-bin.tar.gz -C /usr/local/
+tar -xvf /home/ec2-user/apache-zookeeper-${1}-bin.tar.gz -C /usr/local/
+if [ ! -d "/usr/local/apache-zookeeper-${1}-bin" ]; then
+  wget https://downloads.apache.org/zookeeper/zookeeper-${1}/apache-zookeeper-${1}-bin.tar.gz ./
+  tar -xvf /home/ec2-user/apache-zookeeper-${1}-bin.tar.gz -C /usr/local/
+fi
 
 echo "export JAVA_HOME=/usr/local/java" >> ~/.bashrc
 echo "export JRE_HOME=${JAVA_HOME}/jre" >> ~/.bashrc
