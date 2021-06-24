@@ -495,6 +495,10 @@ Parameters:
     Description: AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
       hosted. If you use your own bucket, you must specify this value.
     Type: String
+  LatestAmiId:
+    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 Mappings:
   AWSRegion2CloudWatch:
     us-east-1:
@@ -612,7 +616,7 @@ Resources:
         BastionAMIOS: !Ref BastionAMIOS
         BastionInstanceType: !Ref BastionInstanceType
         # For PVRE compliance
-        #OSImageOverride: ami-09c84c6043ea24239
+        OSImageOverride: LatestAmiId
         NumBastionHosts: !Ref NumBastionHosts
         KeyPairName: !Ref KeyPairName
         EnableTCPForwarding: 'true'

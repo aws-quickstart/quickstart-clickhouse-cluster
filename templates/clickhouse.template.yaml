@@ -383,6 +383,10 @@ Parameters:
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slashes (/).
     Type: String
+  LatestAmiId:
+    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 Mappings:
   AWSRegion2AMI:
     us-east-1:
@@ -700,7 +704,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -910,7 +915,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -1157,7 +1163,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
@@ -1404,7 +1411,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -1651,7 +1659,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
@@ -1878,7 +1887,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -2105,7 +2115,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
@@ -2332,7 +2343,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -2559,7 +2571,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
