@@ -231,7 +231,7 @@ Parameters:
   ZookeeperInstanceType: 
     Description: Amazon EC2 instance type for the Zookeeper nodes.
     Type: String
-    Default: i3.large
+    Default: m5.large
     AllowedValues: 
       - t2.micro
       - t2.small
@@ -305,7 +305,7 @@ Parameters:
   ClickHouseInstanceType: 
     Description: Amazon EC2 instance type for the ClickHouse nodes.
     Type: String
-    Default: i3.4xlarge
+    Default: m5.xlarge
     AllowedValues: 
       - r6gd.xlarge
       - r6gd.2xlarge
@@ -550,6 +550,7 @@ Resources:
         #OSImageOverride: ami-09c84c6043ea24239
         NumBastionHosts: !Ref NumBastionHosts
         KeyPairName: !Ref KeyPairName
+        EnableTCPForwarding: 'true'
         PublicSubnet1ID: !Ref PublicSubnet1ID
         PublicSubnet2ID: !Ref PublicSubnet2ID
         RemoteAccessCIDR: !Ref RemoteAccessCIDR

@@ -197,13 +197,13 @@ Parameters:
 Mappings:
   AWSRegion2AMI:
     us-east-1:
-      HVM64: ami-0aeeebd8d2ab47354
+      HVM64: ami-0ab4d1e9cf9a1215a
     us-east-2:
-      HVM64: ami-0d8d212151031f51c
+      HVM64: ami-0277b52859bac6f4b
     cn-north-1:
-      HVM64: ami-0cc197a96f4583f55
+      HVM64: ami-0efa6a24287235b09
     cn-northwest-1:
-      HVM64: ami-050d3cee094f16bfa
+      HVM64: ami-065eae9ebdb0841e3
 Conditions:
   UseIops: 
     Fn::Equals: [!Ref VolumeType,"io1"]
@@ -212,7 +212,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: "ZookeeperLogGroup"
-      RetentionInDays: 90
+      RetentionInDays: 180
   ZookeeperInstanceRole:
     Type: AWS::IAM::Role
     Properties:

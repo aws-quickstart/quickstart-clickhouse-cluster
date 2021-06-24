@@ -959,7 +959,7 @@ Resources:
               "properties": {
                   "region": "${AWS::Region}",
                   "title": "ClickHouse Cluster Application Log",
-                  "query": "SOURCE 'ClickHouseLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "query": "SOURCE 'ClickHouseLogGroup' | fields @logStream, @message, @timestamp | sort @timestamp desc ",
                   "view": "table"
               }
             },
@@ -972,7 +972,7 @@ Resources:
               "properties": {
                   "region": "${AWS::Region}",
                   "title": "Zookeeper Cluster Application Log",
-                  "query": "SOURCE 'ZookeeperLogGroup' | fields @message, @timestamp | sort @timestamp desc ",
+                  "query": "SOURCE 'ZookeeperLogGroup' | fields @logStream, @message, @timestamp | sort @timestamp desc ",
                   "view": "table"
               }
             }

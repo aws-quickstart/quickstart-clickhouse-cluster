@@ -395,7 +395,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: "ClickHouseLogGroup"
-      RetentionInDays: 90
+      RetentionInDays: 180
   ClickHouseInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -681,7 +681,7 @@ Resources:
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
       ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       InstanceType: !Ref ClickHouseInstanceType
-      SubnetId: !Ref PublicSubnetID1
+      SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       - !Ref AdminServerSecurityGroup

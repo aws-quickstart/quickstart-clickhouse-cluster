@@ -386,13 +386,13 @@ Parameters:
 Mappings:
   AWSRegion2AMI:
     us-east-1:
-      HVM64: ami-0aeeebd8d2ab47354
+      HVM64: ami-0ab4d1e9cf9a1215a
     us-east-2:
-      HVM64: ami-0d8d212151031f51c
+      HVM64: ami-0277b52859bac6f4b
     cn-north-1:
-      HVM64: ami-0cc197a96f4583f55
+      HVM64: ami-0efa6a24287235b09
     cn-northwest-1:
-      HVM64: ami-050d3cee094f16bfa
+      HVM64: ami-065eae9ebdb0841e3
 Conditions:
   UseIops: 
     Fn::Equals: [!Ref VolumeType,"io1"]
@@ -414,7 +414,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: "ClickHouseLogGroup"
-      RetentionInDays: 90
+      RetentionInDays: 180
   ClickHouseInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -702,7 +702,7 @@ Resources:
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
       ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       InstanceType: !Ref ClickHouseInstanceType
-      SubnetId: !Ref PublicSubnetID1
+      SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       - !Ref AdminServerSecurityGroup
@@ -742,7 +742,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT120M"
   ClickHouseInstance1: 
     Condition: 2NodesCondition
     Type: AWS::EC2::Instance
