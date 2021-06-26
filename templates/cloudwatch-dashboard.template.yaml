@@ -29,6 +29,7 @@ Metadata:
       - ZookeeperInstanceID3
       - ZookeeperImageId
       - ZookeeperInstanceType
+      - AlarmEmail
     ParameterLabels:
       DashboardName:
         default: CloudWatch dashboard name
@@ -64,6 +65,8 @@ Metadata:
         default: Zookeeper image id
       ZookeeperInstanceType:
         default: Zookeeper instance type
+      AlarmEmail:
+        default: Alarm email address
 Parameters:
   DashboardName:
     Description: CloudWatch dashboard name.
@@ -122,6 +125,9 @@ Parameters:
   ZookeeperInstanceType:
     Type: String
     Description: Zookeeper instance type.
+  AlarmEmail: 
+    Description: "Email address to notify of operational issues"
+    Type: "String"
 Conditions:
   2NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '2']
   4NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '4'] 
@@ -146,8 +152,6 @@ Resources:
                 "metrics":[
                   ["ClickHouseNamespace", "cpu_usage_user", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
                   ["ClickHouseNamespace", "cpu_usage_system", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "cpu_usage_user", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "cpu_usage_system", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
                   ["ClickHouseNamespace", "cpu_usage_user", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"],
                   ["ClickHouseNamespace", "cpu_usage_system", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "cpu", "cpu-total", "InstanceType", "${ClickHouseInstanceType}"]
                 ],
@@ -978,3 +982,299 @@ Resources:
             }
           ]
         }
+  SNSClickHouseTopic: 
+    Type: AWS::SNS::Topic
+    Properties: 
+      Subscription: 
+        - Endpoint: 
+            Ref: "AlarmEmail"
+          Protocol: "email"
+      TopicName: SNSClickHouseTopic
+  CPUAlarm1:
+    Condition: 2NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for ClickHouse node1
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID1
+  CPUAlarm2:
+    Condition: 2NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for ClickHouse node2
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID2
+  CPUAlarm3:
+    Condition: 4NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for ClickHouse node3
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID3
+  CPUAlarm4:
+    Condition: 4NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for ClickHouse node4
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID4
+  CPUAlarm5:
+    Condition: 6NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for ClickHouse node5
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID5
+  CPUAlarm6:
+    Condition: 6NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for ClickHouse node6
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID6
+  CPUAlarm7:
+    Condition: 8NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for ClickHouse node7
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID7
+  CPUAlarm8:
+    Condition: 8NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for ClickHouse node8
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID8
+  MemAlarm1:
+    Condition: 2NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mem alarm for ClickHouse node1
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: mem_used_percent
+      Namespace: ClickHouseNamespace
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID1
+  MemAlarm2:
+    Condition: 2NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mem alarm for ClickHouse node2
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: mem_used_percent
+      Namespace: ClickHouseNamespace
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID2
+  MemAlarm3:
+    Condition: 4NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mem alarm for ClickHouse node3
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: mem_used_percent
+      Namespace: ClickHouseNamespace
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID3
+  MemAlarm4:
+    Condition: 4NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mem alarm for ClickHouse node4
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: mem_used_percent
+      Namespace: ClickHouseNamespace
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID4
+  MemAlarm5:
+    Condition: 6NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mem alarm for ClickHouse node5
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: mem_used_percent
+      Namespace: ClickHouseNamespace
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID5
+  MemAlarm6:
+    Condition: 6NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mem alarm for ClickHouse node6
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: mem_used_percent
+      Namespace: ClickHouseNamespace
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID6
+  MemAlarm7:
+    Condition: 8NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mem alarm for ClickHouse node7
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: mem_used_percent
+      Namespace: ClickHouseNamespace
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID7
+  MemAlarm8:
+    Condition: 8NodesCondition
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mem alarm for ClickHouse node8
+      AlarmActions:
+      - Ref: SNSClickHouseTopic
+      MetricName: mem_used_percent
+      Namespace: ClickHouseNamespace
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: ClickHouseInstanceID8

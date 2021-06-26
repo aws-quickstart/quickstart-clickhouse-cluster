@@ -60,6 +60,7 @@ Metadata:
         default: ClickHouse operation configuration
       Parameters:
         - GrafanaVersion
+        - AlarmEmail
     - Label:
         default: AWS Quick Start configuration
       Parameters:
@@ -149,6 +150,8 @@ Metadata:
         default: Quick Start S3 bucket region
       QSS3KeyPrefix:
         default: AWS Quick Start S3 key prefix
+      AlarmEmail:
+        default: Alarm email address
 Parameters:
   VPCID:
     Description: The existing VPC ID.
@@ -483,6 +486,9 @@ Parameters:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  AlarmEmail: 
+    Description: "Email address to notify of operational issues"
+    Type: "String"
 Mappings:
   AWSRegion2CloudWatch:
     us-east-1:
@@ -888,6 +894,7 @@ Resources:
         ZookeeperInstanceID3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperInstanceID3
         ZookeeperImageId: !GetAtt ZookeeperClusterStack.Outputs.ImageId
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
+        AlarmEmail: !Ref AlarmEmail
   CloudWatchDashboard4Nodes:
     Condition: 4NodesCondition
     Type: AWS::CloudFormation::Stack
@@ -932,6 +939,7 @@ Resources:
         ZookeeperInstanceID3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperInstanceID3
         ZookeeperImageId: !GetAtt ZookeeperClusterStack.Outputs.ImageId
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
+        AlarmEmail: !Ref AlarmEmail
   CloudWatchDashboard6Nodes:
     Condition: 6NodesCondition
     Type: AWS::CloudFormation::Stack
@@ -984,6 +992,7 @@ Resources:
         ZookeeperInstanceID3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperInstanceID3
         ZookeeperImageId: !GetAtt ZookeeperClusterStack.Outputs.ImageId
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
+        AlarmEmail: !Ref AlarmEmail
   CloudWatchDashboard8Nodes:
     Condition: 8NodesCondition
     Type: AWS::CloudFormation::Stack
@@ -1044,6 +1053,7 @@ Resources:
         ZookeeperInstanceID3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperInstanceID3
         ZookeeperImageId: !GetAtt ZookeeperClusterStack.Outputs.ImageId
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
+        AlarmEmail: !Ref AlarmEmail
 Outputs:
   CloudWatchLogs:
     Description: CloudWatch Logs GroupName. Your SSH logs will be stored here.
