@@ -536,10 +536,35 @@ Resources:
       Path: /
       Roles:
       - !Ref ClickHouseInstanceRole
-  ClickHouseAdmin: 
+  AdminAutoScalingGroup:
+    Condition: 2NodesCondition
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      LaunchConfigurationName: !Ref AdminLaunchConfiguration
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnetID1
+        - !Ref PrivateSubnetID2
+      MinSize: '1'
+      MaxSize: '1'
+      Cooldown: '900'
+      DesiredCapacity: '1'
+      Tags:
+        - Key: Name
+          Value: 'ClickHouseAdminClient'
+          PropagateAtLaunch: true
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT60M
+      AutoScalingCreationPolicy:
+        MinSuccessfulInstancesPercent: 100
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+  AdminLaunchConfiguration:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
     Condition: 2NodesCondition
     DependsOn: ClickHouseInstance1
-    Type: AWS::EC2::Instance
     Metadata:
       Comment: Install ClickHouse admin
       AWS::CloudFormation::Authentication:
@@ -678,8 +703,8 @@ Resources:
                content: !Sub |
                  [cfn-auto-reloader-hook]
                  triggers=post.update
-                 path=Resources.ClickHouseAdmin.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
-                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseAdmin --region ${AWS::Region} --configsets UpdateEnvironment
+                 path=Resources.AdminLaunchConfiguration.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource AdminLaunchConfiguration --region ${AWS::Region} --configsets UpdateEnvironment
                  runas=root
                mode: '000400'
                owner: root
@@ -704,11 +729,10 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      # ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
-      SubnetId: !Ref PrivateSubnetID1
-      SecurityGroupIds:
+      SecurityGroups:
       - !Ref ClickHouseServerSecurityGroup
       - !Ref AdminServerSecurityGroup
       BlockDeviceMappings:
@@ -726,7 +750,8 @@ Resources:
             # This script below is to install AmazonCloudWatchAgent, restart AmazonCloudWatchAgent and tell the result to cloudformation.
             rpm -Uvh ${CloudWatchAgentURL}
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseAdmin  --region ${AWS::Region}
+            /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource AdminLaunchConfiguration --region ${AWS::Region}
+
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
@@ -739,11 +764,8 @@ Resources:
             
             chmod +x clickhouse-client-install.sh
             ./clickhouse-client-install.sh ${ClickHouseVersion} ${DBPassword} ${RootStackName} ${AWS::Region} ${DemoDataSize} ${ClickHouseNodeCount} ${GrafanaVersion} > clickhouse-client-install.log
-
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseAdmin --region ${AWS::Region}
-      Tags:
-      - Key: Name
-        Value: 'ClickHouseAdminClient'
+             
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource AdminAutoScalingGroup --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
         Count: 1
@@ -915,7 +937,7 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      # ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
@@ -2633,10 +2655,6 @@ Resources:
         Count: 1
         Timeout: "PT60M"
 Outputs:
-  ClickHouseAdminPublicDnsName:
-    Condition: 2NodesCondition
-    Description: ClickHouse Admin instance
-    Value: !GetAtt ClickHouseAdmin.PublicDnsName
   ClickHouseInstanceID1:
     Condition: 2NodesCondition
     Description: ClickHouse instance
@@ -2694,4 +2712,4 @@ Outputs:
     Condition: 8NodesCondition
     Value: !GetAtt ClickHouseInstance8.PrivateIp
   ImageId:
-    Value: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+    Value: !Ref LatestAmiId

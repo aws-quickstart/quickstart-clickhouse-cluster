@@ -622,7 +622,7 @@ Resources:
         BastionAMIOS: !Ref BastionAMIOS
         BastionInstanceType: !Ref BastionInstanceType
         # For PVRE compliance
-        OSImageOverride: LatestAmiId
+        OSImageOverride: !Ref LatestAmiId
         NumBastionHosts: !Ref NumBastionHosts
         KeyPairName: !Ref KeyPairName
         EnableTCPForwarding: 'true'
@@ -1177,14 +1177,6 @@ Outputs:
     Condition: 8NodesCondition
     Description: Network Load Balancer with port 8123 in private subnet 1
     Value: !GetAtt Nlb8NodesStack.Outputs.ElbDNSName
-  GrafanaDashboard:
-    Condition: IsX86
-    Description: Grafana Dashboard of ClickHouse cluster
-    Value: !Join 
-      - ''
-      - - 'http://'
-        - !GetAtt ClickHouseClusterStack.Outputs.ClickHouseAdminPublicDnsName
-        - ':3000'
   CloudWatchDashboard:
     Description: CloudWatch Dashboard of ClickHouse cluster
     Value: !FindInMap [AWSRegion2CloudWatchDashboard, !Ref 'AWS::Region', DashboardURL]
