@@ -649,6 +649,21 @@ Resources:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         VPCCIDR: !GetAtt VPCStack.Outputs.VPCCIDR
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+  ClickHouseSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: ClickHouseSecret
+      Description: "This secret has a dynamically generated secret password."
+      GenerateSecretString:
+        SecretStringTemplate: '{}'
+        GenerateStringKey: "password"
+        PasswordLength: 20
+        ExcludeCharacters: '"@/\|.,;!#$%^&*()_`[]{}<>=-+?~:'
+        ExcludePunctuation: true
+      Tags:
+        -
+          Key: AppName
+          Value: ClickHouseSecret
   ZookeeperClusterStack: 
     Type: AWS::CloudFormation::Stack
     Properties: 
@@ -764,6 +779,7 @@ Resources:
         InstanceRoleArn: !FindInMap [AWSRegion2Arn, !Ref 'AWS::Region', Arn]
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        SecretId: !Ref ClickHouseSecret
   ClickHouseClusterArmStack: 
     Condition: IsArm
     Type: AWS::CloudFormation::Stack
