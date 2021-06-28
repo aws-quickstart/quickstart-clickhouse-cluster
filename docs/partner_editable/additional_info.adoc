@@ -33,9 +33,9 @@ ssh -i "clickhouse.pem" ec2-user@ec2-11-11-11-11.compute-1.amazonaws.com
 .. On the *Instances* screen, select the checkbox for the instance. Note the *Private IPs* in the *Description* tab, as shown in <<IPaddress>>.
 
 [#IPaddress]
-[link=images/ClickHouseClientAddress.png]
+[link=images/ec2.png]
 .EC2 instance private IP address
-image::../images/ClickHouseClientAddress.png[ClickHouseClientAddress,width=75%,height=75%]
+image::../images/ec2.png[ClickHouseClientAddress,width=75%,height=75%]
 
 [start=5]
 . From the bastion host, make sure the PEM key pair file in the current bastion host directory and log into the client node with the IP address. For example:
@@ -143,9 +143,6 @@ image::../images/switchyOmega4.png[SwitchyOmega,width=50%,height=50%]
 .Private IP address of the ClickHouse client host in the EC2 console
 image::../images/ec2.png[ec2,width=90%,height=90%]
 
-+
-:xrefstyle: short
-<<webconsole>> shows an example of the Grafana client in the web console.
 
 +
 
@@ -154,6 +151,25 @@ image::../images/ec2.png[ec2,width=90%,height=90%]
 .Grafana web console
 image::../images/GrafanaConsole.png[console,width=90%,height=90%]
 
+[start=4]
+. The username is admin, to get the password of Grafana web console, navigate to the CloudFormation stack console and click the outputs. You can find the link of the parameter named `DBPassword`.
+
++
+
+[#cloudformationconsole]
+[link=images/cloudformation_outputs.png]
+.CloudFormation outputs
+image::../images/cloudformation_outputs.png[console,width=90%,height=90%]
+
+[start=5]
+. Navigate to the Secrets Manager console and click the `Retrieve secret value`. You can find the password.
+
++
+
+[#secretsmanagerconsole]
+[link=images/secretsmanager.png]
+.Secrets Manager console
+image::../images/secretsmanager.png[console,width=90%,height=90%]
 
 === ClickHouse resources
 

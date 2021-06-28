@@ -946,7 +946,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        DashboardName: ClickHouse-Cluster-Dashboard
+        DashboardName: !Sub 'ClickHouse-Cluster-Dashboard-${AWS::Region}'
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseInstanceID1: !If 
           - IsX86 
@@ -983,7 +983,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        DashboardName: ClickHouse-Cluster-Dashboard
+        DashboardName: !Sub 'ClickHouse-Cluster-Dashboard-${AWS::Region}'
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseInstanceID1: !If 
           - IsX86 
@@ -1028,7 +1028,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        DashboardName: ClickHouse-Cluster-Dashboard
+        DashboardName: !Sub 'ClickHouse-Cluster-Dashboard-${AWS::Region}'
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseInstanceID1: !If 
           - IsX86 
@@ -1081,7 +1081,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        DashboardName: ClickHouse-Cluster-Dashboard
+        DashboardName: !Sub 'ClickHouse-Cluster-Dashboard-${AWS::Region}'
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseInstanceID1: !If 
           - IsX86 
@@ -1157,7 +1157,12 @@ Outputs:
     Value: !GetAtt Nlb8NodesStack.Outputs.ElbDNSName
   CloudWatchDashboard:
     Description: CloudWatch Dashboard of ClickHouse cluster
-    Value: !If [IsChinaRegion, !Sub 'https://console.amazonaws.cn/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard', !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard']
+    Value: !If [IsChinaRegion, !Sub 'https://console.amazonaws.cn/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard-${AWS::Region}', !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard-${AWS::Region}']
+  DBPassword:
+    Description: Dynamically generate a random text string stored in SecretsManager to use as a password
+    Value: !If [IsChinaRegion, 
+      !Join ['', [!Sub 'https://console.amazonaws.cn/secretsmanager/home?region=${AWS::Region}#!/secret?name=', !Ref ClickHouseSecret]], 
+      !Join ['', [!Sub 'https://console.aws.amazon.com/secretsmanager/home?region=${AWS::Region}#!/secret?name=', !Ref ClickHouseSecret]]]
 Rules:
   RegionValid:
     RuleCondition: !Or 
