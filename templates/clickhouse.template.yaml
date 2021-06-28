@@ -8,7 +8,6 @@ Metadata:
     - Label:
         default: Network configuration
       Parameters:
-      - PublicSubnetID1
       - PrivateSubnetID1
       - PrivateSubnetID2
     - Label:
@@ -62,8 +61,6 @@ Metadata:
       - QSS3BucketName
       - QSS3KeyPrefix
     ParameterLabels:
-      PublicSubnetID1:
-        default: Public subnet ID 1
       PrivateSubnetID1:
         default: Private subnet ID 1
       PrivateSubnetID2:
@@ -145,9 +142,6 @@ Metadata:
       SecretId:
         default: Secret Id in SecretsManager
 Parameters: 
-  PublicSubnetID1: 
-    Description: Public Subnet 1 ID.
-    Type: String
   PrivateSubnetID1: 
     Description: Private Subnet 1 ID.
     Type: String

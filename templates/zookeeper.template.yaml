@@ -198,16 +198,6 @@ Parameters:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
-Mappings:
-  AWSRegion2AMI:
-    us-east-1:
-      HVM64: ami-0ab4d1e9cf9a1215a
-    us-east-2:
-      HVM64: ami-0277b52859bac6f4b
-    cn-north-1:
-      HVM64: ami-0efa6a24287235b09
-    cn-northwest-1:
-      HVM64: ami-065eae9ebdb0841e3
 Conditions:
   UseIops: 
     Fn::Equals: [!Ref VolumeType,"io1"]
@@ -1087,4 +1077,4 @@ Outputs:
   ZookeeperMainLogGroup:
     Value: !Ref ZookeeperMainLogGroup
   ImageId:
-    Value: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+    Value: !Ref LatestAmiId

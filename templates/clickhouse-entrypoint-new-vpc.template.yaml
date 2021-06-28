@@ -505,48 +505,18 @@ Parameters:
   AlarmEmail: 
     Description: "Email address to notify of operational issues"
     Type: "String"
-Mappings:
-  AWSRegion2CloudWatch:
-    us-east-1:
-      AgentURL: https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-    us-east-2:
-      AgentURL: https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-    cn-north-1:
-      AgentURL: https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-    cn-northwest-1:
-      AgentURL: https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-  AWSRegion2CloudWatchArm:
-    us-east-1:
-      AgentURL: https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
-    us-east-2:
-      AgentURL: https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
-    cn-north-1:
-      AgentURL: https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
-    cn-northwest-1:
-      AgentURL: https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
-  AWSRegion2Arn:
-    us-east-1:
-      Arn: aws
-    us-east-2:
-      Arn: aws
-    cn-north-1:
-      Arn: aws-cn
-    cn-northwest-1:
-      Arn: aws-cn
-  AWSRegion2CloudWatchDashboard:
-    us-east-1:
-      DashboardURL: https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=ClickHouse-Cluster-Dashboard
-    us-east-2:
-      DashboardURL: https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#dashboards:name=ClickHouse-Cluster-Dashboard
-    cn-north-1:
-      DashboardURL: https://console.amazonaws.cn/cloudwatch/home?region=cn-north-1#dashboards:name=ClickHouse-Cluster-Dashboard
-    cn-northwest-1:
-      DashboardURL: https://console.amazonaws.cn/cloudwatch/home?region=cn-northwest-1#dashboards:name=ClickHouse-Cluster-Dashboard
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   UsingSingleAZ: !Equals [!Ref SingleAvailableZone, '1az']
   IsX86: !Equals [!Ref Architecture, 'X86']
   IsArm: !Equals [!Ref Architecture, 'ARM']
+  IsChinaRegion: !Or 
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-north-1
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-northwest-1
   2NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '2']
   4NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '4'] 
   6NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '6'] 
@@ -700,8 +670,8 @@ Resources:
         VolumeType: !Ref ZookeeperVolumeType
         VolumeSize: !Ref ZookeeperVolumeSize
         Iops: !Ref ZookeeperIops
-        CloudWatchAgentURL: !FindInMap [AWSRegion2CloudWatch, !Ref 'AWS::Region', AgentURL]
-        InstanceRoleArn: !FindInMap [AWSRegion2Arn, !Ref 'AWS::Region', Arn]
+        CloudWatchAgentURL: !If [IsChinaRegion, 'https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm', 'https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm']
+        InstanceRoleArn: !If [IsChinaRegion, 'aws-cn', 'aws']
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   ClickHouseBucket:
@@ -736,10 +706,6 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PublicSubnetID1: 
-          Fn::GetAtt: 
-            - VPCStack
-            - Outputs.PublicSubnet1ID
         PrivateSubnetID1:
           Fn::GetAtt: 
             - VPCStack
@@ -775,8 +741,8 @@ Resources:
         ZookeeperPrivateIp1: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp1
         ZookeeperPrivateIp2: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp2
         ZookeeperPrivateIp3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp3
-        CloudWatchAgentURL: !FindInMap [AWSRegion2CloudWatch, !Ref 'AWS::Region', AgentURL]
-        InstanceRoleArn: !FindInMap [AWSRegion2Arn, !Ref 'AWS::Region', Arn]
+        CloudWatchAgentURL: !If [IsChinaRegion, 'https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm', 'https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm']
+        InstanceRoleArn: !If [IsChinaRegion, 'aws-cn', 'aws']
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         SecretId: !Ref ClickHouseSecret
@@ -797,10 +763,6 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PublicSubnetID1: 
-          Fn::GetAtt: 
-            - VPCStack
-            - Outputs.PublicSubnet1ID
         PrivateSubnetID1:
           Fn::GetAtt: 
             - VPCStack
@@ -836,8 +798,8 @@ Resources:
         ZookeeperPrivateIp1: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp1
         ZookeeperPrivateIp2: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp2
         ZookeeperPrivateIp3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp3
-        CloudWatchAgentURL: !FindInMap [AWSRegion2CloudWatchArm, !Ref 'AWS::Region', AgentURL]
-        InstanceRoleArn: !FindInMap [AWSRegion2Arn, !Ref 'AWS::Region', Arn]
+        CloudWatchAgentURL: !If [IsChinaRegion, 'https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb', 'https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb']
+        InstanceRoleArn: !If [IsChinaRegion, 'aws-cn', 'aws']
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   Nlb2NodesStack:
@@ -1195,7 +1157,7 @@ Outputs:
     Value: !GetAtt Nlb8NodesStack.Outputs.ElbDNSName
   CloudWatchDashboard:
     Description: CloudWatch Dashboard of ClickHouse cluster
-    Value: !FindInMap [AWSRegion2CloudWatchDashboard, !Ref 'AWS::Region', DashboardURL]
+    Value: !If [IsChinaRegion, !Sub 'https://console.amazonaws.cn/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard', !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard']
 Rules:
   RegionValid:
     RuleCondition: !Or 
