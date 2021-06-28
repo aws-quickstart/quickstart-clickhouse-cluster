@@ -126,7 +126,7 @@ Parameters:
     Type: String
     Description: Zookeeper instance type.
   AlarmEmail: 
-    Description: "Email address to notify of operational issues"
+    Description: "Email address to notify of operational issues."
     Type: "String"
 Conditions:
   2NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '2']

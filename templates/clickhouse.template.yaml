@@ -140,7 +140,7 @@ Metadata:
       QSS3KeyPrefix:
         default: AWS Quick Start S3 key prefix
       SecretId:
-        default: Secret Id in SecretsManager
+        default: Secret id in SecretsManager
 Parameters: 
   PrivateSubnetID1: 
     Description: Private Subnet 1 ID.
