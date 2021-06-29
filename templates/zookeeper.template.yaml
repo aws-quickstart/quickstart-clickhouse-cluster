@@ -137,6 +137,8 @@ Parameters:
   ZookeeperVersion:
     AllowedValues:
     - '3.5.9'
+    - '3.6.3'
+    - '3.7.0'
     Default: '3.5.9'
     Description: Zookeeper version (3.5.9).
     Type: String
