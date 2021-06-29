@@ -527,7 +527,7 @@ Resources:
             echo "1" >> /data/zookeeper/data/myid
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-zookeeper-cluster,Value="server.1=`curl http://169.254.169.254/latest/meta-data/local-ipv4`:2888:3888"
 
-            flag=600
+            flag=1800
             while((flag > 0))
             do
               echo `aws ec2 describe-tags --filters Name=key,Values=${RootStackName}-zookeeper-cluster --region ${AWS::Region}` > instancelist
@@ -537,6 +537,7 @@ Resources:
                 python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
+                  echo $line
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
                 done < result
                 break
@@ -771,7 +772,7 @@ Resources:
             echo "2" >> /data/zookeeper/data/myid
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-zookeeper-cluster,Value="server.2=`curl http://169.254.169.254/latest/meta-data/local-ipv4`:2888:3888"
 
-            flag=600
+            flag=1800
             while((flag > 0))
             do
               echo `aws ec2 describe-tags --filters Name=key,Values=${RootStackName}-zookeeper-cluster --region ${AWS::Region}` > instancelist
@@ -781,6 +782,7 @@ Resources:
                 python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
+                  echo $line
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
                 done < result
                 break
@@ -1017,7 +1019,7 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-zookeeper-cluster,Value="server.3=`curl http://169.254.169.254/latest/meta-data/local-ipv4`:2888:3888"
 
-            flag=600
+            flag=1800
             while((flag > 0))
             do
               echo `aws ec2 describe-tags --filters Name=key,Values=${RootStackName}-zookeeper-cluster --region ${AWS::Region}` > instancelist
@@ -1027,6 +1029,7 @@ Resources:
                 python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
+                  echo $line
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
                 done < result
                 break
