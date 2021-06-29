@@ -334,7 +334,6 @@ Parameters:
     - 'none'
     - 'small'
     - 'medium'
-    - 'large'
     Default: 'small'
     Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
