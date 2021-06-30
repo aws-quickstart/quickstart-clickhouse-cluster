@@ -51,6 +51,7 @@ Metadata:
       - DistributedProductMode
       - LoadBalancing
       - MaxDataPartSize
+      - MoveFactor
       - MaxInsertThreads
       - MaxMemoryUsage
       - MaxThreads
@@ -132,6 +133,8 @@ Metadata:
         default: Load balancing
       MaxDataPartSize:
         default: Max data part size
+      MoveFactor:
+        default: Move factor
       MaxInsertThreads:
         default: Max insert threads
       MaxMemoryUsage:
@@ -459,6 +462,20 @@ Parameters:
     Default: '1073741824'
     Description: The max_data_part_size_bytes for ClickHouse default storage.xml //  Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
     Type: String
+  MoveFactor:
+    AllowedValues:
+    - 0.1
+    - 0.2
+    - 0.3
+    - 0.4
+    - 0.5
+    - 0.6
+    - 0.7
+    - 0.8
+    - 0.9
+    Default: 0.3
+    Description: In case of cold option a data can be moved to S3 if local disk free size will be smaller than move_factor * disk_size.
+    Type: String
   GrafanaVersion:
       Default: 8.0.1-1
       Description: Grafana version.
@@ -504,6 +521,8 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
   AlarmEmail: 
+    AllowedPattern: ^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$
+    ConstraintDescription: Incorrect email address.
     Description: "Email address to notify of operational issues."
     Type: "String"
 Conditions:
@@ -737,6 +756,7 @@ Resources:
         DistributedProductMode: !Ref DistributedProductMode
         LoadBalancing: !Ref LoadBalancing
         MaxDataPartSize: !Ref MaxDataPartSize
+        MoveFactor: !Ref MoveFactor
         GrafanaVersion: !Ref GrafanaVersion
         DemoDataSize: !Ref DemoDataSize
         ZookeeperPrivateIp1: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp1
@@ -794,6 +814,7 @@ Resources:
         DistributedProductMode: !Ref DistributedProductMode
         LoadBalancing: !Ref LoadBalancing
         MaxDataPartSize: !Ref MaxDataPartSize
+        MoveFactor: !Ref MoveFactor
         GrafanaVersion: !Ref GrafanaVersion
         DemoDataSize: !Ref DemoDataSize
         ZookeeperPrivateIp1: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp1
