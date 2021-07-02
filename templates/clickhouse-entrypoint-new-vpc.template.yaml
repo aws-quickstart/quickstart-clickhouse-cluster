@@ -481,6 +481,8 @@ Parameters:
       Description: Grafana version.
       Type: String
   Port:
+    AllowedValues:
+    - 8123
     Type: String
     Description: ClickHouse service port.
     Default: 8123

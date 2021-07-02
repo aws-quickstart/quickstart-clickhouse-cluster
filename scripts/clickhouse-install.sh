@@ -4,7 +4,7 @@
 # ${ClickHouseNodeCount} 2
 # ${RootStackName} 3
 # ${AWS::Region} 4
-# https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ 5 # S3VPCEndpoint
+# http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ 5 # S3VPCEndpoint
 # ${MoveFactor} 6
 # ${ClickHouseTimezone} 7
 # ${ZookeeperPrivateIp1} 8
