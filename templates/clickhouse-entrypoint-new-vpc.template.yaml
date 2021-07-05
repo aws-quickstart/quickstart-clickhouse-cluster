@@ -57,6 +57,7 @@ Metadata:
       - MaxThreads
       - Port
       - DemoDataSize
+      - LatestAmiId
     - Label:
         default: ClickHouse operation configuration
       Parameters:
@@ -155,6 +156,8 @@ Metadata:
         default: AWS Quick Start S3 key prefix
       AlarmEmail:
         default: Alarm email address
+      LatestAmiId:
+        default: Latest Amazon Linux2 AMI ID
 Parameters:
   AvailabilityZones:
     Description: 'List of Availability Zones to use for the subnets in the VPC. Note:
@@ -519,7 +522,7 @@ Parameters:
       hosted. If you use your own bucket, you must specify this value.
     Type: String
   LatestAmiId:
-    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Description: Reference the latest Amazon Linux2 AMI in a CloudFormation template.
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
   AlarmEmail: 
@@ -698,6 +701,8 @@ Resources:
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   ClickHouseBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BucketName: 
         !Join 

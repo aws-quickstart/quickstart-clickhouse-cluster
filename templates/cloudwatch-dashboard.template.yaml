@@ -29,6 +29,8 @@ Metadata:
       - ZookeeperInstanceID3
       - ZookeeperImageId
       - ZookeeperInstanceType
+      - CpuThreshold
+      - MemThreshold
       - AlarmEmail
     ParameterLabels:
       DashboardName:
@@ -65,6 +67,10 @@ Metadata:
         default: Zookeeper image id
       ZookeeperInstanceType:
         default: Zookeeper instance type
+      CpuThreshold:
+        default: The threshold of CPU alarm
+      MemThreshold:
+        default: The threshold of Mem alarm
       AlarmEmail:
         default: Alarm email address
 Parameters:
@@ -125,6 +131,14 @@ Parameters:
   ZookeeperInstanceType:
     Type: String
     Description: Zookeeper instance type.
+  CpuThreshold:
+    Type: String
+    Description: The threshold of CPU alarm.
+    Default: 70
+  MemThreshold:
+    Type: String
+    Description: The threshold of Mem alarm.
+    Default: 70
   AlarmEmail: 
     Description: "Email address to notify of operational issues."
     Type: "String"
@@ -1002,7 +1016,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref CpuThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1020,7 +1034,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref CpuThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1038,7 +1052,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref CpuThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1056,7 +1070,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref CpuThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1074,7 +1088,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref CpuThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1092,7 +1106,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref CpuThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1110,7 +1124,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref CpuThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1128,7 +1142,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref CpuThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1146,7 +1160,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref MemThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1164,7 +1178,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref MemThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1182,7 +1196,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref MemThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1200,7 +1214,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref MemThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1218,7 +1232,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref MemThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1236,7 +1250,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref MemThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1254,7 +1268,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref MemThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
@@ -1272,7 +1286,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 5
-      Threshold: 90
+      Threshold: !Ref MemThreshold
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
