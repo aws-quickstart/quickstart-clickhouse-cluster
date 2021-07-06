@@ -331,10 +331,10 @@ Parameters:
     Type: String
     Default: m5.xlarge
     AllowedValues: 
-      - r6gd.xlarge
-      - r6gd.2xlarge
-      - r6gd.4xlarge
-      - r6gd.8xlarge
+      #- r6gd.xlarge
+      #- r6gd.2xlarge
+      #- r6gd.4xlarge
+      #- r6gd.8xlarge
       - t2.micro
       - t2.small
       - t2.medium
