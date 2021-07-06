@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: (SO8019) - Deploy ClickHouse on AWS in an existing VPC. (qs-xxxxxxxxx)
+Description: (SO8019) - Deploy ClickHouse on Amazon Web Services in an existing VPC. (qs-xxxxxxxxx)
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -64,7 +64,7 @@ Metadata:
         - GrafanaVersion
         - AlarmEmail
     - Label:
-        default: AWS Quick Start configuration
+        default: Amazon Web Services Quick Start configuration
       Parameters:
       - QSS3BucketName
       - QSS3BucketRegion
@@ -149,11 +149,11 @@ Metadata:
       GrafanaVersion:
         default: Grafana version
       QSS3BucketName:
-        default: AWS Quick Start S3 bucket name
+        default: Amazon Web Services Quick Start S3 bucket name
       QSS3BucketRegion:
         default: Quick Start S3 bucket region
       QSS3KeyPrefix:
-        default: AWS Quick Start S3 key prefix
+        default: Amazon Web Services Quick Start S3 key prefix
       AlarmEmail:
         default: Alarm email address
       LatestAmiId:
@@ -369,7 +369,7 @@ Parameters:
       - 6
       - 8
   Architecture:
-    Description:  AWS graviton2-based EC2 instances provide up to 40 percent better price/performance over comparable current generation x86-based instances.
+    Description:  Amazon graviton2-based EC2 instances provide up to 40 percent better price/performance over comparable current generation x86-based instances.
     Type: String
     Default: X86
     AllowedValues: 
@@ -502,7 +502,7 @@ Parameters:
     Type: String
   QSS3BucketRegion:
     Default: 'us-east-1'
-    Description: AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
+    Description: Amazon Region where the Quick Start S3 bucket (QSS3BucketName) is
       hosted. If you use your own bucket, you must specify this value.
     Type: String
   LatestAmiId:
