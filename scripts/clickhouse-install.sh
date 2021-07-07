@@ -42,6 +42,11 @@ rpm --import https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG
 yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
 yum install clickhouse-server-$1 clickhouse-client-$1 -y
 
+if [ ! -d "/etc/clickhouse-server" ]; then
+    yum-config-manager --add-repo https://mirrors.tuna.tsinghua.edu.cn/clickhouse/rpm/stable/x86_64
+    yum install clickhouse-server-$1 clickhouse-client-$1 -y
+fi
+
 echo "<yandex>" >> /etc/clickhouse-server/metrika.xml
 echo "<clickhouse_remote_servers>" >> /etc/clickhouse-server/metrika.xml
 echo "    <quickstart_clickhouse_cluster>" >> /etc/clickhouse-server/metrika.xml
