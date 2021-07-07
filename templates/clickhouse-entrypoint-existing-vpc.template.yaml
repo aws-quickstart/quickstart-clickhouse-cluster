@@ -579,7 +579,7 @@ Resources:
   ClickHouseSecret:
     Type: 'AWS::SecretsManager::Secret'
     Properties:
-      Name: ClickHouseSecret
+      Name: !Join ['-',['ClickHouseSecret',!GetAtt BastionStack.Outputs.BastionSecurityGroupID]]
       Description: "This secret has a dynamically generated secret password."
       GenerateSecretString:
         SecretStringTemplate: '{}'
@@ -590,7 +590,7 @@ Resources:
       Tags:
         -
           Key: AppName
-          Value: ClickHouseSecret
+          Value: !Join ['-',['ClickHouseSecret',!GetAtt BastionStack.Outputs.BastionSecurityGroupID]]
   ZookeeperClusterStack: 
     Type: AWS::CloudFormation::Stack
     Properties: 
@@ -1113,4 +1113,10 @@ Rules:
             - - 'cn-north-1'
               - 'cn-northwest-1'
             - !Ref QSS3BucketRegion
+        AssertDescription: ''
+      - Assert: 
+          'Fn::Contains':
+            - - 'aws-cn-quickstart'
+              - 'aws-cn-quickstart-wqqiao'
+            - !Ref QSS3BucketName
         AssertDescription: ''
