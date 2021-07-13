@@ -178,7 +178,8 @@ systemctl start grafana-server
 sleep 1
 systemctl status grafana-server
 
-curl -X PUT -H "Content-Type: application/json" -d '{"oldPassword": "admin","newPassword": "${2}","confirmNew": "${2}"}' http://admin:admin@localhost:3000/api/user/password
+# Change the default password
+grafana-cli admin reset-admin-password ${2}
 
 systemctl stop grafana-server
 systemctl start grafana-server
@@ -199,7 +200,7 @@ elif [ $5 = medium ]; then
 elif [ $5 = large ]; then
     ontimefrom=1988
     ontimeto=2010
-elif [ $5 = no ]; then
+elif [ $5 = none ]; then
     ontimefrom=0
     ontimeto=0
 else

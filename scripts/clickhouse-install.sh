@@ -4,7 +4,7 @@
 # ${ClickHouseNodeCount} 2
 # ${RootStackName} 3
 # ${AWS::Region} 4
-# https://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ 5 # S3VPCEndpoint
+# http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ 5 # S3VPCEndpoint
 # ${MoveFactor} 6
 # ${ClickHouseTimezone} 7
 # ${ZookeeperPrivateIp1} 8
@@ -42,6 +42,11 @@ rpm --import https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG
 yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
 yum install clickhouse-server-$1 clickhouse-client-$1 -y
 
+if [ ! -d "/etc/clickhouse-server" ]; then
+    yum-config-manager --add-repo https://mirrors.tuna.tsinghua.edu.cn/clickhouse/rpm/stable/x86_64
+    yum install clickhouse-server-$1 clickhouse-client-$1 -y
+fi
+
 echo "<yandex>" >> /etc/clickhouse-server/metrika.xml
 echo "<clickhouse_remote_servers>" >> /etc/clickhouse-server/metrika.xml
 echo "    <quickstart_clickhouse_cluster>" >> /etc/clickhouse-server/metrika.xml
@@ -60,7 +65,7 @@ echo "                <user>default</user>" >> /etc/clickhouse-server/metrika.xm
 echo "                <password>${11}</password>" >> /etc/clickhouse-server/metrika.xml
 echo "             </replica>" >> /etc/clickhouse-server/metrika.xml
 echo "        </shard>" >> /etc/clickhouse-server/metrika.xml
-if [ $2 -eq 4 ]
+if [ $2 -ge 4 ]
 then
     echo "        <shard>" >> /etc/clickhouse-server/metrika.xml
     echo "             <internal_replication>true</internal_replication>" >> /etc/clickhouse-server/metrika.xml
@@ -77,7 +82,9 @@ then
     echo "                <password>${11}</password>" >> /etc/clickhouse-server/metrika.xml
     echo "             </replica>" >> /etc/clickhouse-server/metrika.xml
     echo "        </shard>" >> /etc/clickhouse-server/metrika.xml
-elif [ $2 -eq 6 ]
+fi
+
+if [ $2 -ge 6 ]
 then
     echo "        <shard>" >> /etc/clickhouse-server/metrika.xml
     echo "             <internal_replication>true</internal_replication>" >> /etc/clickhouse-server/metrika.xml
@@ -94,7 +101,9 @@ then
     echo "                <password>${11}</password>" >> /etc/clickhouse-server/metrika.xml
     echo "             </replica>" >> /etc/clickhouse-server/metrika.xml
     echo "        </shard>" >> /etc/clickhouse-server/metrika.xml
-elif [ $2 -eq 8 ]
+fi
+
+if [ $2 -ge 8 ]
 then
     echo "        <shard>" >> /etc/clickhouse-server/metrika.xml
     echo "             <internal_replication>true</internal_replication>" >> /etc/clickhouse-server/metrika.xml

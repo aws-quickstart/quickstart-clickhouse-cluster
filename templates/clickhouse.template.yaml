@@ -8,7 +8,6 @@ Metadata:
     - Label:
         default: Network configuration
       Parameters:
-      - PublicSubnetID1
       - PrivateSubnetID1
       - PrivateSubnetID2
     - Label:
@@ -32,7 +31,7 @@ Metadata:
       - ClickHouseVersion
       - ClickHouseTimezone
       - ClickHouseNodeCount
-      - DBPassword
+      - SecretId
       - ClickHouseBucketName
       - MoveFactor
       - RootStackName
@@ -62,8 +61,6 @@ Metadata:
       - QSS3BucketName
       - QSS3KeyPrefix
     ParameterLabels:
-      PublicSubnetID1:
-        default: Public subnet ID 1
       PrivateSubnetID1:
         default: Private subnet ID 1
       PrivateSubnetID2:
@@ -98,8 +95,6 @@ Metadata:
         default: ClickHouse time zone
       ClickHouseNodeCount:
         default: Number of ClickHouse nodes
-      DBPassword:
-        default: DB password
       ClickHouseBucketName:
         default: ClickHouse bucket name
       MoveFactor:
@@ -144,10 +139,9 @@ Metadata:
         default: AWS Quick Start S3 bucket name
       QSS3KeyPrefix:
         default: AWS Quick Start S3 key prefix
+      SecretId:
+        default: Secret id in SecretsManager
 Parameters: 
-  PublicSubnetID1: 
-    Description: Public Subnet 1 ID.
-    Type: String
   PrivateSubnetID1: 
     Description: Private Subnet 1 ID.
     Type: String
@@ -244,10 +238,6 @@ Parameters:
     Default: 2
     Description: ClickHouse node count.
     Type: Number
-  DBPassword:
-    Default: Qwerty
-    Description: ClickHouse database password.
-    Type: String
   ClickHouseBucketName:
     Default: clickhouse-data
     Description: ClickHouse bucket name.
@@ -344,7 +334,6 @@ Parameters:
     - 'none'
     - 'small'
     - 'medium'
-    - 'large'
     Default: 'small'
     Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
@@ -383,17 +372,13 @@ Parameters:
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slashes (/).
     Type: String
-Mappings:
-  AWSRegion2AMI:
-    us-east-1:
-      HVM64: ami-0d5eff06f840b45e9
-    us-east-2:
-      HVM64: ami-077e31c4939f6a2f3
-      #HVM64: ami-09c84c6043ea24239
-    cn-north-1:
-      HVM64: ami-0c52e2685c7218558
-    cn-northwest-1:
-      HVM64: ami-05b9b6d6acf8ae9b6
+  SecretId:
+    Type: String
+    Description: Dynamically generate a random text string stored in SecretsManager to use as a password.
+  LatestAmiId:
+    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 Conditions:
   UseIops: 
     Fn::Equals: [!Ref VolumeType,"io1"]
@@ -415,7 +400,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: "ClickHouseLogGroup"
-      RetentionInDays: 90
+      RetentionInDays: 180
   ClickHouseInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -480,6 +465,57 @@ Resources:
             Action:
               - ec2:DescribeTags
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - cloudwatch:PutDashboard
+              - cloudwatch:DeleteAlarms
+              - cloudwatch:DeleteInsightRules
+              - cloudwatch:StartMetricStreams
+              - cloudwatch:UntagResource
+              - cloudwatch:ListTagsForResource
+              - cloudwatch:GetDashboard
+              - cloudwatch:GetInsightRuleReport
+              - cloudwatch:DisableInsightRules
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:GetMetricStream
+              - cloudwatch:DeleteDashboards
+              - cloudwatch:DescribeAlarmHistory
+              - cloudwatch:StopMetricStreams
+              - cloudwatch:DisableAlarmActions
+              - cloudwatch:DeleteMetricStream
+              - cloudwatch:SetAlarmState
+              - cloudwatch:EnableInsightRules
+              - cloudwatch:PutCompositeAlarm
+              - cloudwatch:PutMetricStream
+              - cloudwatch:PutInsightRule
+              - cloudwatch:TagResource
+              - cloudwatch:PutMetricAlarm
+              - cloudwatch:EnableAlarmActions
+            Resource: 
+              - !Sub arn:${InstanceRoleArn}:cloudwatch::${AWS::AccountId}:dashboard/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:alarm:*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:insight-rule/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:metric-stream/*
+          - Effect: Allow
+            Action:
+              - cloudwatch:DescribeInsightRules
+              - cloudwatch:PutMetricData
+              - cloudwatch:GetMetricData
+              - cloudwatch:ListMetricStreams
+              - cloudwatch:DescribeAlarmsForMetric
+              - cloudwatch:ListDashboards
+              - cloudwatch:PutAnomalyDetector
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:GetMetricWidgetImage
+              - cloudwatch:DeleteAnomalyDetector
+              - cloudwatch:ListMetrics
+              - cloudwatch:DescribeAnomalyDetectors
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:GetSecretValue
+            Resource: !Sub arn:${InstanceRoleArn}:secretsmanager:*:${AWS::AccountId}:secret:*
         PolicyName: ClickHouse-Instance-Role
   ClickHouseInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -487,10 +523,35 @@ Resources:
       Path: /
       Roles:
       - !Ref ClickHouseInstanceRole
-  ClickHouseAdmin: 
+  AdminAutoScalingGroup:
+    Condition: 2NodesCondition
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      LaunchConfigurationName: !Ref AdminLaunchConfiguration
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnetID1
+        - !Ref PrivateSubnetID2
+      MinSize: '1'
+      MaxSize: '1'
+      Cooldown: '900'
+      DesiredCapacity: '1'
+      Tags:
+        - Key: Name
+          Value: 'ClickHouseAdminClient'
+          PropagateAtLaunch: true
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT60M
+      AutoScalingCreationPolicy:
+        MinSuccessfulInstancesPercent: 100
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+  AdminLaunchConfiguration:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
     Condition: 2NodesCondition
     DependsOn: ClickHouseInstance1
-    Type: AWS::EC2::Instance
     Metadata:
       Comment: Install ClickHouse admin
       AWS::CloudFormation::Authentication:
@@ -537,18 +598,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/tmp"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -629,8 +690,8 @@ Resources:
                content: !Sub |
                  [cfn-auto-reloader-hook]
                  triggers=post.update
-                 path=Resources.ClickHouseAdmin.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
-                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseAdmin --region ${AWS::Region} --configsets UpdateEnvironment
+                 path=Resources.AdminLaunchConfiguration.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource AdminLaunchConfiguration --region ${AWS::Region} --configsets UpdateEnvironment
                  runas=root
                mode: '000400'
                owner: root
@@ -655,10 +716,10 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      # ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
-      SubnetId: !Ref PublicSubnetID1
-      SecurityGroupIds:
+      SecurityGroups:
       - !Ref ClickHouseServerSecurityGroup
       - !Ref AdminServerSecurityGroup
       BlockDeviceMappings:
@@ -676,28 +737,41 @@ Resources:
             # This script below is to install AmazonCloudWatchAgent, restart AmazonCloudWatchAgent and tell the result to cloudformation.
             rpm -Uvh ${CloudWatchAgentURL}
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseAdmin  --region ${AWS::Region}
+            /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource AdminLaunchConfiguration --region ${AWS::Region}
+
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
             echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
 
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/downloaddata.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-client-install.sh ./ --region ${AWS::Region}
             
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> clickhouse-client-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  return 0
+              else
+                  echo "Fail to create demo table" >> clickhouse-client-install.log
+                  return 1
+              fi
+            }
             chmod +x clickhouse-client-install.sh
-            ./clickhouse-client-install.sh ${ClickHouseVersion} ${DBPassword} ${RootStackName} ${AWS::Region} ${DemoDataSize} ${ClickHouseNodeCount} ${GrafanaVersion} > clickhouse-client-install.log
-
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseAdmin --region ${AWS::Region}
-      Tags:
-      - Key: Name
-        Value: 'ClickHouseAdminClient'
+            ./clickhouse-client-install.sh ${ClickHouseVersion} `python ./find-secret.py secretfile ` ${RootStackName} ${AWS::Region} ${DemoDataSize} ${ClickHouseNodeCount} ${GrafanaVersion} > clickhouse-client-install.log
+             
+            cfn_check_result
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource AdminAutoScalingGroup --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT120M"
   ClickHouseInstance1: 
     Condition: 2NodesCondition
     Type: AWS::EC2::Instance
@@ -747,18 +821,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -865,7 +939,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      # ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -893,18 +968,22 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard01-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
+            
             chmod +x clickhouse-install.sh
-            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
 
             chmod +r /home/ec2-user/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
                 echo "ClickHouse is running" >> ch-install.log
@@ -933,10 +1012,24 @@ Resources:
             rm -rf /home/ec2-user/result-7
             rm -rf /home/ec2-user/instancelist-8
             rm -rf /home/ec2-user/result-8
-            
-            echo "Begin to create demo table" >> ch-install.log
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> ch-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> ch-install.log
+                  return 1
+              fi
+            }
+            echo "Begin to create demo table" >> ch-install.log
+            clickhouse-client --user default --password `python ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance1 --region ${AWS::Region}
       Tags:
       - Key: Name
@@ -994,18 +1087,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -1112,7 +1205,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
@@ -1141,17 +1235,19 @@ Resources:
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard01-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-install.sh
-            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "01" "02" > ch-install.log
+            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "01" "02" > ch-install.log
 
             chmod +r /home/ec2-user/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
                 echo "ClickHouse is running" >> ch-install.log
@@ -1181,9 +1277,23 @@ Resources:
             rm -rf /home/ec2-user/instancelist-8
             rm -rf /home/ec2-user/result-8
             
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> ch-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> ch-install.log
+                  return 1
+              fi
+            }
             echo "Begin to create demo table" >> ch-install.log
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+            clickhouse-client --user default --password `python ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
 
+            cfn_check_result
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance2 --region ${AWS::Region}
       Tags:
       - Key: Name
@@ -1241,18 +1351,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -1359,7 +1469,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -1388,17 +1499,19 @@ Resources:
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard02-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-install.sh
-            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" > ch-install.log
+            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" > ch-install.log
 
             chmod +r /home/ec2-user/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
                 echo "ClickHouse is running" >> ch-install.log
@@ -1428,9 +1541,23 @@ Resources:
             rm -rf /home/ec2-user/instancelist-8
             rm -rf /home/ec2-user/result-8
             
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> ch-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> ch-install.log
+                  return 1
+              fi
+            }
             echo "Begin to create demo table" >> ch-install.log
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+            clickhouse-client --user default --password `python ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
 
+            cfn_check_result
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance3 --region ${AWS::Region}
       Tags:
       - Key: Name
@@ -1488,18 +1615,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -1606,7 +1733,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
@@ -1635,29 +1763,66 @@ Resources:
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard02-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-install.sh
-            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" > ch-install.log
+            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" > ch-install.log
 
             chmod +r /home/ec2-user/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> ch-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
+            # Clean
+            rm -rf /home/ec2-user/find-clickhouse-node.py
+            rm -rf /home/ec2-user/clickhouse-install.sh
+            rm -rf /home/ec2-user/instancelist-1
+            rm -rf /home/ec2-user/result-1
+            rm -rf /home/ec2-user/instancelist-2
+            rm -rf /home/ec2-user/result-2
+            rm -rf /home/ec2-user/instancelist-3
+            rm -rf /home/ec2-user/result-3
+            rm -rf /home/ec2-user/instancelist-4
+            rm -rf /home/ec2-user/result-4
+            rm -rf /home/ec2-user/instancelist-5
+            rm -rf /home/ec2-user/result-5
+            rm -rf /home/ec2-user/instancelist-6
+            rm -rf /home/ec2-user/result-6
+            rm -rf /home/ec2-user/instancelist-7
+            rm -rf /home/ec2-user/result-7
+            rm -rf /home/ec2-user/instancelist-8
+            rm -rf /home/ec2-user/result-8
+            
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> ch-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> ch-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> ch-install.log
+            clickhouse-client --user default --password `python ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance4 --region ${AWS::Region}
       Tags:
       - Key: Name
@@ -1715,18 +1880,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -1833,7 +1998,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -1862,29 +2028,66 @@ Resources:
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard03-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-install.sh ./ --region ${AWS::Region} 
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}   
             chmod +x clickhouse-install.sh
-            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" > ch-install.log
+            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" > ch-install.log
 
             chmod +r /home/ec2-user/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> ch-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
+            # Clean
+            rm -rf /home/ec2-user/find-clickhouse-node.py
+            rm -rf /home/ec2-user/clickhouse-install.sh
+            rm -rf /home/ec2-user/instancelist-1
+            rm -rf /home/ec2-user/result-1
+            rm -rf /home/ec2-user/instancelist-2
+            rm -rf /home/ec2-user/result-2
+            rm -rf /home/ec2-user/instancelist-3
+            rm -rf /home/ec2-user/result-3
+            rm -rf /home/ec2-user/instancelist-4
+            rm -rf /home/ec2-user/result-4
+            rm -rf /home/ec2-user/instancelist-5
+            rm -rf /home/ec2-user/result-5
+            rm -rf /home/ec2-user/instancelist-6
+            rm -rf /home/ec2-user/result-6
+            rm -rf /home/ec2-user/instancelist-7
+            rm -rf /home/ec2-user/result-7
+            rm -rf /home/ec2-user/instancelist-8
+            rm -rf /home/ec2-user/result-8
+            
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> ch-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> ch-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> ch-install.log
+            clickhouse-client --user default --password `python ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance5 --region ${AWS::Region}
       Tags:
       - Key: Name
@@ -1942,18 +2145,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -2060,7 +2263,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
@@ -2089,29 +2293,66 @@ Resources:
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard03-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-install.sh
-            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" > ch-install.log
+            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" > ch-install.log
 
             chmod +r /home/ec2-user/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> ch-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
+            # Clean
+            rm -rf /home/ec2-user/find-clickhouse-node.py
+            rm -rf /home/ec2-user/clickhouse-install.sh
+            rm -rf /home/ec2-user/instancelist-1
+            rm -rf /home/ec2-user/result-1
+            rm -rf /home/ec2-user/instancelist-2
+            rm -rf /home/ec2-user/result-2
+            rm -rf /home/ec2-user/instancelist-3
+            rm -rf /home/ec2-user/result-3
+            rm -rf /home/ec2-user/instancelist-4
+            rm -rf /home/ec2-user/result-4
+            rm -rf /home/ec2-user/instancelist-5
+            rm -rf /home/ec2-user/result-5
+            rm -rf /home/ec2-user/instancelist-6
+            rm -rf /home/ec2-user/result-6
+            rm -rf /home/ec2-user/instancelist-7
+            rm -rf /home/ec2-user/result-7
+            rm -rf /home/ec2-user/instancelist-8
+            rm -rf /home/ec2-user/result-8
+            
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> ch-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> ch-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> ch-install.log
+            clickhouse-client --user default --password `python ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region}
       Tags:
       - Key: Name
@@ -2169,18 +2410,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -2287,7 +2528,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
@@ -2316,29 +2558,66 @@ Resources:
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard04-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-install.sh
-            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" > ch-install.log
+            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" > ch-install.log
 
             chmod +r /home/ec2-user/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> ch-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
+            # Clean
+            rm -rf /home/ec2-user/find-clickhouse-node.py
+            rm -rf /home/ec2-user/clickhouse-install.sh
+            rm -rf /home/ec2-user/instancelist-1
+            rm -rf /home/ec2-user/result-1
+            rm -rf /home/ec2-user/instancelist-2
+            rm -rf /home/ec2-user/result-2
+            rm -rf /home/ec2-user/instancelist-3
+            rm -rf /home/ec2-user/result-3
+            rm -rf /home/ec2-user/instancelist-4
+            rm -rf /home/ec2-user/result-4
+            rm -rf /home/ec2-user/instancelist-5
+            rm -rf /home/ec2-user/result-5
+            rm -rf /home/ec2-user/instancelist-6
+            rm -rf /home/ec2-user/result-6
+            rm -rf /home/ec2-user/instancelist-7
+            rm -rf /home/ec2-user/result-7
+            rm -rf /home/ec2-user/instancelist-8
+            rm -rf /home/ec2-user/result-8
+            
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> ch-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> ch-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> ch-install.log
+            clickhouse-client --user default --password `python ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance7 --region ${AWS::Region}
       Tags:
       - Key: Name
@@ -2396,18 +2675,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -2514,7 +2793,8 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ClickHouseInstanceType
       SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
@@ -2543,29 +2823,66 @@ Resources:
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard04-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             cd /home/ec2-user/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-install.sh
-            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" > ch-install.log
+            ./clickhouse-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" > ch-install.log
 
             chmod +r /home/ec2-user/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" > /dev/null
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> ch-install.log
                 break
             fi
             let flag--
             sleep 1
             done
+
+            # Clean
+            rm -rf /home/ec2-user/find-clickhouse-node.py
+            rm -rf /home/ec2-user/clickhouse-install.sh
+            rm -rf /home/ec2-user/instancelist-1
+            rm -rf /home/ec2-user/result-1
+            rm -rf /home/ec2-user/instancelist-2
+            rm -rf /home/ec2-user/result-2
+            rm -rf /home/ec2-user/instancelist-3
+            rm -rf /home/ec2-user/result-3
+            rm -rf /home/ec2-user/instancelist-4
+            rm -rf /home/ec2-user/result-4
+            rm -rf /home/ec2-user/instancelist-5
+            rm -rf /home/ec2-user/result-5
+            rm -rf /home/ec2-user/instancelist-6
+            rm -rf /home/ec2-user/result-6
+            rm -rf /home/ec2-user/instancelist-7
+            rm -rf /home/ec2-user/result-7
+            rm -rf /home/ec2-user/instancelist-8
+            rm -rf /home/ec2-user/result-8
             
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> ch-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> ch-install.log
+                  return 1
+              fi
+            }
             
+            echo "Begin to create demo table" >> ch-install.log
+            clickhouse-client --user default --password `python ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+            
+            cfn_check_result
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance8 --region ${AWS::Region}
       Tags:
       - Key: Name
@@ -2575,10 +2892,6 @@ Resources:
         Count: 1
         Timeout: "PT60M"
 Outputs:
-  ClickHouseAdminPublicDnsName:
-    Condition: 2NodesCondition
-    Description: ClickHouse Admin instance
-    Value: !GetAtt ClickHouseAdmin.PublicDnsName
   ClickHouseInstanceID1:
     Condition: 2NodesCondition
     Description: ClickHouse instance
@@ -2636,4 +2949,4 @@ Outputs:
     Condition: 8NodesCondition
     Value: !GetAtt ClickHouseInstance8.PrivateIp
   ImageId:
-    Value: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+    Value: !Ref LatestAmiId

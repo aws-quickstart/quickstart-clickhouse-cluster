@@ -1,4 +1,4 @@
-CREATE TABLE `ontime_replica`
+CREATE TABLE IF NOT EXISTS `ontime_replica`
 (
     `Year`                            UInt16,
     `Quarter`                         UInt8,
@@ -114,5 +114,5 @@ CREATE TABLE `ontime_replica`
       ORDER BY (IATA_CODE_Reporting_Airline, FlightDate)
       SETTINGS storage_policy = 'tiered', index_granularity = 8192;
 
-CREATE TABLE ontime as ontime_replica
+CREATE TABLE IF NOT EXISTS ontime as ontime_replica
 ENGINE = Distributed(quickstart_clickhouse_cluster, default, ontime_replica, rand());

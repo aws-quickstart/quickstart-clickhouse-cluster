@@ -9,7 +9,6 @@ Metadata:
     - Label:
         default: Network configuration
       Parameters:
-      - PublicSubnetID1
       - PrivateSubnetID1
       - PrivateSubnetID2
     - Label:
@@ -63,8 +62,6 @@ Metadata:
       - QSS3BucketName
       - QSS3KeyPrefix
     ParameterLabels:
-      PublicSubnetID1:
-        default: Public subnet ID 1
       PrivateSubnetID1:
         default: Private subnet ID 1
       PrivateSubnetID2:
@@ -146,9 +143,6 @@ Metadata:
       QSS3KeyPrefix:
         default: AWS Quick Start S3 key prefix
 Parameters: 
-  PublicSubnetID1: 
-    Description: Public Subnet 1 ID.
-    Type: String
   PrivateSubnetID1: 
     Description: Private Subnet 1 ID.
     Type: String
@@ -325,7 +319,6 @@ Parameters:
     - 'none'
     - 'small'
     - 'medium'
-    - 'large'
     Default: 'small'
     Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
@@ -395,7 +388,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: "ClickHouseLogGroup"
-      RetentionInDays: 90
+      RetentionInDays: 180
   ClickHouseInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -460,6 +453,52 @@ Resources:
             Action:
               - ec2:DescribeTags
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - cloudwatch:PutDashboard
+              - cloudwatch:DeleteAlarms
+              - cloudwatch:DeleteInsightRules
+              - cloudwatch:StartMetricStreams
+              - cloudwatch:UntagResource
+              - cloudwatch:ListTagsForResource
+              - cloudwatch:GetDashboard
+              - cloudwatch:GetInsightRuleReport
+              - cloudwatch:DisableInsightRules
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:GetMetricStream
+              - cloudwatch:DeleteDashboards
+              - cloudwatch:DescribeAlarmHistory
+              - cloudwatch:StopMetricStreams
+              - cloudwatch:DisableAlarmActions
+              - cloudwatch:DeleteMetricStream
+              - cloudwatch:SetAlarmState
+              - cloudwatch:EnableInsightRules
+              - cloudwatch:PutCompositeAlarm
+              - cloudwatch:PutMetricStream
+              - cloudwatch:PutInsightRule
+              - cloudwatch:TagResource
+              - cloudwatch:PutMetricAlarm
+              - cloudwatch:EnableAlarmActions
+            Resource: 
+              - !Sub arn:${InstanceRoleArn}:cloudwatch::${AWS::AccountId}:dashboard/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:alarm:*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:insight-rule/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:metric-stream/*
+          - Effect: Allow
+            Action:
+              - cloudwatch:DescribeInsightRules
+              - cloudwatch:PutMetricData
+              - cloudwatch:GetMetricData
+              - cloudwatch:ListMetricStreams
+              - cloudwatch:DescribeAlarmsForMetric
+              - cloudwatch:ListDashboards
+              - cloudwatch:PutAnomalyDetector
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:GetMetricWidgetImage
+              - cloudwatch:DeleteAnomalyDetector
+              - cloudwatch:ListMetrics
+              - cloudwatch:DescribeAnomalyDetectors
+            Resource: '*'
         PolicyName: ClickHouse-Instance-Role
   ClickHouseInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -515,18 +554,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/tmp"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -635,7 +674,7 @@ Resources:
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
       ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       InstanceType: !Ref ClickHouseInstanceType
-      SubnetId: !Ref PublicSubnetID1
+      SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       - !Ref AdminServerSecurityGroup
@@ -822,18 +861,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -1067,18 +1106,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -1312,18 +1351,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -1558,18 +1597,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -1804,18 +1843,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -2050,18 +2089,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -2296,18 +2335,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -2542,18 +2581,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/home/clickhouse/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],

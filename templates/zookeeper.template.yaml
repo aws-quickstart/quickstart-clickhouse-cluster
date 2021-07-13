@@ -8,7 +8,8 @@ Metadata:
     - Label:
         default: Network configuration
       Parameters:
-      - PrivateSubnetID
+      - PrivateSubnetID1
+      - PrivateSubnetID2
     - Label:
         default: EC2 configuration
       Parameters:
@@ -36,8 +37,10 @@ Metadata:
       - QSS3BucketName
       - QSS3KeyPrefix
     ParameterLabels:
-      PrivateSubnetID:
-        default: Private subnet ID
+      PrivateSubnetID1:
+        default: Private subnet ID 1
+      PrivateSubnetID2:
+        default: Private subnet ID 2
       ZookeeperServerSecurityGroupID:
         default: Zookeeper server security group
       KeyPairName:
@@ -73,8 +76,11 @@ Metadata:
       QSS3KeyPrefix:
         default: S3 key prefix for the Quick Start assets
 Parameters: 
-  PrivateSubnetID: 
-    Description: Private subnet Id.
+  PrivateSubnetID1: 
+    Description: Private subnet ID 1.
+    Type: String
+  PrivateSubnetID2: 
+    Description: Private subnet ID 2.
     Type: String
   ZookeeperServerSecurityGroupID: 
     Description: ID of the Zookeeper server access security group (e.g., sg-7f16e910).
@@ -131,6 +137,8 @@ Parameters:
   ZookeeperVersion:
     AllowedValues:
     - '3.5.9'
+    - '3.6.3'
+    - '3.7.0'
     Default: '3.5.9'
     Description: Zookeeper version (3.5.9).
     Type: String
@@ -188,17 +196,10 @@ Parameters:
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slashes (/).
     Type: String
-Mappings:
-  AWSRegion2AMI:
-    us-east-1:
-      HVM64: ami-0d5eff06f840b45e9
-    us-east-2:
-      HVM64: ami-077e31c4939f6a2f3
-      #HVM64: ami-09c84c6043ea24239
-    cn-north-1:
-      HVM64: ami-0c52e2685c7218558
-    cn-northwest-1:
-      HVM64: ami-05b9b6d6acf8ae9b6
+  LatestAmiId:
+    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 Conditions:
   UseIops: 
     Fn::Equals: [!Ref VolumeType,"io1"]
@@ -207,7 +208,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: "ZookeeperLogGroup"
-      RetentionInDays: 90
+      RetentionInDays: 180
   ZookeeperInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -272,6 +273,52 @@ Resources:
             Action:
               - ec2:DescribeTags
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - cloudwatch:PutDashboard
+              - cloudwatch:DeleteAlarms
+              - cloudwatch:DeleteInsightRules
+              - cloudwatch:StartMetricStreams
+              - cloudwatch:UntagResource
+              - cloudwatch:ListTagsForResource
+              - cloudwatch:GetDashboard
+              - cloudwatch:GetInsightRuleReport
+              - cloudwatch:DisableInsightRules
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:GetMetricStream
+              - cloudwatch:DeleteDashboards
+              - cloudwatch:DescribeAlarmHistory
+              - cloudwatch:StopMetricStreams
+              - cloudwatch:DisableAlarmActions
+              - cloudwatch:DeleteMetricStream
+              - cloudwatch:SetAlarmState
+              - cloudwatch:EnableInsightRules
+              - cloudwatch:PutCompositeAlarm
+              - cloudwatch:PutMetricStream
+              - cloudwatch:PutInsightRule
+              - cloudwatch:TagResource
+              - cloudwatch:PutMetricAlarm
+              - cloudwatch:EnableAlarmActions
+            Resource: 
+              - !Sub arn:${InstanceRoleArn}:cloudwatch::${AWS::AccountId}:dashboard/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:alarm:*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:insight-rule/*
+              - !Sub arn:${InstanceRoleArn}:cloudwatch:*:${AWS::AccountId}:metric-stream/*
+          - Effect: Allow
+            Action:
+              - cloudwatch:DescribeInsightRules
+              - cloudwatch:PutMetricData
+              - cloudwatch:GetMetricData
+              - cloudwatch:ListMetricStreams
+              - cloudwatch:DescribeAlarmsForMetric
+              - cloudwatch:ListDashboards
+              - cloudwatch:PutAnomalyDetector
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:GetMetricWidgetImage
+              - cloudwatch:DeleteAnomalyDetector
+              - cloudwatch:ListMetrics
+              - cloudwatch:DescribeAnomalyDetectors
+            Resource: '*'
         PolicyName: Zookeeper-Instance-Role
   ZookeeperInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -327,18 +374,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -445,9 +492,10 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ZookeeperInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ZookeeperInstanceType
-      SubnetId: !Ref PrivateSubnetID
+      SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
       - !Ref ZookeeperServerSecurityGroupID
       BlockDeviceMappings:
@@ -481,7 +529,7 @@ Resources:
             echo "1" >> /data/zookeeper/data/myid
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-zookeeper-cluster,Value="server.1=`curl http://169.254.169.254/latest/meta-data/local-ipv4`:2888:3888"
 
-            flag=600
+            flag=1800
             while((flag > 0))
             do
               echo `aws ec2 describe-tags --filters Name=key,Values=${RootStackName}-zookeeper-cluster --region ${AWS::Region}` > instancelist
@@ -491,6 +539,7 @@ Resources:
                 python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
+                  echo $line
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
                 done < result
                 break
@@ -499,6 +548,13 @@ Resources:
               let flag--
               sleep 1
             done
+
+            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+            rm -rf /home/ec2-user/apache-zookeeper-${ZookeeperVersion}-bin.tar.gz
+            rm -rf /home/ec2-user/zookeeper-install.sh
+            rm -rf /home/ec2-user/find-zookeeper-node.py
+            rm -rf /home/ec2-user/instancelist
+            rm -rf /home/ec2-user/result
 
             echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
             chmod +x /home/ec2-user/zk-start.sh
@@ -563,18 +619,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -681,9 +737,10 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ZookeeperInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ZookeeperInstanceType
-      SubnetId: !Ref PrivateSubnetID
+      SubnetId: !Ref PrivateSubnetID1
       SecurityGroupIds:
       - !Ref ZookeeperServerSecurityGroupID
       BlockDeviceMappings:
@@ -717,7 +774,7 @@ Resources:
             echo "2" >> /data/zookeeper/data/myid
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-zookeeper-cluster,Value="server.2=`curl http://169.254.169.254/latest/meta-data/local-ipv4`:2888:3888"
 
-            flag=600
+            flag=1800
             while((flag > 0))
             do
               echo `aws ec2 describe-tags --filters Name=key,Values=${RootStackName}-zookeeper-cluster --region ${AWS::Region}` > instancelist
@@ -727,6 +784,7 @@ Resources:
                 python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
+                  echo $line
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
                 done < result
                 break
@@ -735,6 +793,13 @@ Resources:
               let flag--
               sleep 1
             done
+
+            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+            rm -rf /home/ec2-user/apache-zookeeper-${ZookeeperVersion}-bin.tar.gz
+            rm -rf /home/ec2-user/zookeeper-install.sh
+            rm -rf /home/ec2-user/find-zookeeper-node.py
+            rm -rf /home/ec2-user/instancelist
+            rm -rf /home/ec2-user/result
 
             echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
             chmod +x /home/ec2-user/zk-start.sh
@@ -799,18 +864,18 @@ Resources:
                         "measurement": [
                           {"name": "cpu_usage_idle", "rename": "CPU_USAGE_IDLE", "unit": "Percent"},
                           {"name": "cpu_usage_nice", "unit": "Percent"},
-                          "cpu_usage_guest"
+                          {"name": "cpu_usage_user", "unit": "Percent"},
+                          {"name": "cpu_usage_system", "unit": "Percent"}
                         ],
                         "totalcpu": true,
                         "metrics_collection_interval": 10
                       },
                       "disk": {
                         "resources": [
-                          "/",
-                          "/data/"
+                          "/"
                         ],
                         "measurement": [
-                          {"name": "free", "rename": "DISK_FREE", "unit": "Gigabytes"},
+                          "used_percent",
                           "total",
                           "used"
                         ],
@@ -917,9 +982,10 @@ Resources:
     Properties:
       KeyName: !Ref KeyPairName
       IamInstanceProfile: !Ref ZookeeperInstanceProfile
-      ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      #ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref ZookeeperInstanceType
-      SubnetId: !Ref PrivateSubnetID
+      SubnetId: !Ref PrivateSubnetID2
       SecurityGroupIds:
       - !Ref ZookeeperServerSecurityGroupID
       BlockDeviceMappings:
@@ -955,7 +1021,7 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-zookeeper-cluster,Value="server.3=`curl http://169.254.169.254/latest/meta-data/local-ipv4`:2888:3888"
 
-            flag=600
+            flag=1800
             while((flag > 0))
             do
               echo `aws ec2 describe-tags --filters Name=key,Values=${RootStackName}-zookeeper-cluster --region ${AWS::Region}` > instancelist
@@ -965,6 +1031,7 @@ Resources:
                 python3 find-zookeeper-node.py instancelist result
                 while read line
                 do
+                  echo $line
                   echo $line >> /usr/local/apache-zookeeper-${ZookeeperVersion}-bin/conf/zoo.cfg
                 done < result
                 break
@@ -973,13 +1040,13 @@ Resources:
               let flag--
               sleep 1
             done
-            # Clean
-            rm -rf instancelist
-            rm -rf result
+            
+            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+            rm -rf /home/ec2-user/apache-zookeeper-${ZookeeperVersion}-bin.tar.gz
             rm -rf /home/ec2-user/zookeeper-install.sh
             rm -rf /home/ec2-user/find-zookeeper-node.py
-            rm -rf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
-            rm -rf /home/ec2-user/apache-zookeeper-3.5.9-bin.tar.gz
+            rm -rf /home/ec2-user/instancelist
+            rm -rf /home/ec2-user/result
 
             echo "/usr/local/apache-zookeeper-${ZookeeperVersion}-bin/bin/zkServer.sh start" > /home/ec2-user/zk-start.sh
             chmod +x /home/ec2-user/zk-start.sh
@@ -1015,4 +1082,4 @@ Outputs:
   ZookeeperMainLogGroup:
     Value: !Ref ZookeeperMainLogGroup
   ImageId:
-    Value: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
+    Value: !Ref LatestAmiId

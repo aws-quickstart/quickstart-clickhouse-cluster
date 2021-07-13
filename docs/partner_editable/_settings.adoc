@@ -16,7 +16,7 @@
 // for example, 30 minutes or 60 minutes. 
 // Use hours for deployment times greater than 60 minutes (rounded to a quarter hour),
 // for example, 1.25 hours, 2 hours, 2.5 hours.
-:deployment_time: 15 minutes / 60 minutes / 1.5 hours
+:deployment_time: 60 minutes
 :default_deployment_region: us-east-1
 :parameters_as_appendix:
 // Uncomment the following two attributes if you are using an AWS Marketplace listing.

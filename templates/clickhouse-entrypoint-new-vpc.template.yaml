@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: '(SO8019) - Deploy ClickHouse on AWS in a new VPC. (qs-xxxxxxxxx)'
+Description: '(SO8019) - Deploy ClickHouse on Amazon Web Services in a new VPC. (qs-xxxxxxxxx)'
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -51,17 +51,20 @@ Metadata:
       - DistributedProductMode
       - LoadBalancing
       - MaxDataPartSize
+      - MoveFactor
       - MaxInsertThreads
       - MaxMemoryUsage
       - MaxThreads
       - Port
       - DemoDataSize
+      - LatestAmiId
     - Label:
         default: ClickHouse operation configuration
       Parameters:
         - GrafanaVersion
+        - AlarmEmail
     - Label:
-        default: AWS Quick Start configuration
+        default: Amazon Web Services Quick Start configuration
       Parameters:
       - QSS3BucketName
       - QSS3BucketRegion
@@ -131,6 +134,8 @@ Metadata:
         default: Load balancing
       MaxDataPartSize:
         default: Max data part size
+      MoveFactor:
+        default: Move factor
       MaxInsertThreads:
         default: Max insert threads
       MaxMemoryUsage:
@@ -144,11 +149,15 @@ Metadata:
       GrafanaVersion:
         default: Grafana version
       QSS3BucketName:
-        default: AWS Quick Start S3 bucket name
+        default: Amazon Web Services Quick Start S3 bucket name
       QSS3BucketRegion:
         default: Quick Start S3 bucket region
       QSS3KeyPrefix:
-        default: AWS Quick Start S3 key prefix
+        default: Amazon Web Services Quick Start S3 key prefix
+      AlarmEmail:
+        default: Alarm email address
+      LatestAmiId:
+        default: Latest Amazon Linux2 AMI ID
 Parameters:
   AvailabilityZones:
     Description: 'List of Availability Zones to use for the subnets in the VPC. Note:
@@ -244,7 +253,7 @@ Parameters:
   ZookeeperInstanceType: 
     Description: Amazon EC2 instance type for the Zookeeper nodes.
     Type: String
-    Default: i3.large
+    Default: m5.large
     AllowedValues: 
       - t2.micro
       - t2.small
@@ -278,6 +287,8 @@ Parameters:
   ZookeeperVersion:
     AllowedValues:
     - '3.5.9'
+    - '3.6.3'
+    - '3.7.0'
     Default: '3.5.9'
     Description: Zookeeper version (3.5.9).
     Type: String
@@ -318,12 +329,12 @@ Parameters:
   ClickHouseInstanceType: 
     Description: Amazon EC2 instance type for the ClickHouse nodes.
     Type: String
-    Default: i3.4xlarge
+    Default: m5.xlarge
     AllowedValues: 
-      - r6gd.xlarge
-      - r6gd.2xlarge
-      - r6gd.4xlarge
-      - r6gd.8xlarge
+      #- r6gd.xlarge
+      #- r6gd.2xlarge
+      #- r6gd.4xlarge
+      #- r6gd.8xlarge
       - t2.micro
       - t2.small
       - t2.medium
@@ -374,7 +385,7 @@ Parameters:
       - 6
       - 8
   Architecture:
-    Description:  AWS graviton2-based EC2 instances provide up to 40 percent better price/performance over comparable current generation x86-based instances.
+    Description:  Amazon graviton2-based EC2 instances provide up to 40 percent better price/performance over comparable current generation x86-based instances.
     Type: String
     Default: X86
     AllowedValues: 
@@ -434,7 +445,7 @@ Parameters:
     - 'local'
     - 'global'
     - 'allow'
-    Default: 'deny'
+    Default: 'global'
     Description: The distributed_product_mode for ClickHouse default users.xml // ClickHouse applies this setting when the query contains the product of distributed tables, i.e. when the query for a distributed table contains a non-GLOBAL subquery for the distributed table.
     Type: String
   LoadBalancing:
@@ -443,7 +454,7 @@ Parameters:
     - 'nearest_hostname'
     - 'in_order'
     - 'first_or_random'
-    Default: 'random'
+    Default: 'nearest_hostname'
     Description: The load_balancing for ClickHouse default users.xml // Specifies the algorithm of replicas selection that is used for distributed query processing.
     Type: String
   MaxDataPartSize:
@@ -454,11 +465,27 @@ Parameters:
     Default: '1073741824'
     Description: The max_data_part_size_bytes for ClickHouse default storage.xml //  Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
     Type: String
+  MoveFactor:
+    AllowedValues:
+    - 0.1
+    - 0.2
+    - 0.3
+    - 0.4
+    - 0.5
+    - 0.6
+    - 0.7
+    - 0.8
+    - 0.9
+    Default: 0.3
+    Description: In case of cold option a data can be moved to S3 if local disk free size will be smaller than move_factor * disk_size.
+    Type: String
   GrafanaVersion:
       Default: 8.0.1-1
       Description: Grafana version.
       Type: String
   Port:
+    AllowedValues:
+    - 8123
     Type: String
     Description: ClickHouse service port.
     Default: 8123
@@ -466,7 +493,7 @@ Parameters:
     AllowedValues:
     - 'small'
     - 'medium'
-    - 'large'
+    - 'none'
     Default: 'small'
     Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
@@ -491,51 +518,30 @@ Parameters:
     Type: String
   QSS3BucketRegion:
     Default: 'us-east-1'
-    Description: AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
+    Description: Amazon Region where the Quick Start S3 bucket (QSS3BucketName) is
       hosted. If you use your own bucket, you must specify this value.
     Type: String
-Mappings:
-  AWSRegion2CloudWatch:
-    us-east-1:
-      AgentURL: https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-    us-east-2:
-      AgentURL: https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-    cn-north-1:
-      AgentURL: https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-    cn-northwest-1:
-      AgentURL: https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-  AWSRegion2CloudWatchArm:
-    us-east-1:
-      AgentURL: https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
-    us-east-2:
-      AgentURL: https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
-    cn-north-1:
-      AgentURL: https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
-    cn-northwest-1:
-      AgentURL: https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
-  AWSRegion2Arn:
-    us-east-1:
-      Arn: aws
-    us-east-2:
-      Arn: aws
-    cn-north-1:
-      Arn: aws-cn
-    cn-northwest-1:
-      Arn: aws-cn
-  AWSRegion2CloudWatchDashboard:
-    us-east-1:
-      DashboardURL: https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=ClickHouse-Cluster-Dashboard
-    us-east-2:
-      DashboardURL: https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#dashboards:name=ClickHouse-Cluster-Dashboard
-    cn-north-1:
-      DashboardURL: https://console.amazonaws.cn/cloudwatch/home?region=cn-north-1#dashboards:name=ClickHouse-Cluster-Dashboard
-    cn-northwest-1:
-      DashboardURL: https://console.amazonaws.cn/cloudwatch/home?region=cn-northwest-1#dashboards:name=ClickHouse-Cluster-Dashboard
+  LatestAmiId:
+    Description: Reference the latest Amazon Linux2 AMI in a CloudFormation template.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  AlarmEmail: 
+    AllowedPattern: ^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$
+    ConstraintDescription: Incorrect email address.
+    Description: "Email address to notify of operational issues."
+    Type: "String"
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   UsingSingleAZ: !Equals [!Ref SingleAvailableZone, '1az']
   IsX86: !Equals [!Ref Architecture, 'X86']
   IsArm: !Equals [!Ref Architecture, 'ARM']
+  IsChinaRegion: !Or 
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-north-1
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-northwest-1
   2NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '2']
   4NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '4'] 
   6NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '6'] 
@@ -611,9 +617,10 @@ Resources:
         BastionAMIOS: !Ref BastionAMIOS
         BastionInstanceType: !Ref BastionInstanceType
         # For PVRE compliance
-        #OSImageOverride: ami-09c84c6043ea24239
+        OSImageOverride: !Ref LatestAmiId
         NumBastionHosts: !Ref NumBastionHosts
         KeyPairName: !Ref KeyPairName
+        EnableTCPForwarding: 'true'
         PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
         PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
@@ -637,6 +644,21 @@ Resources:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         VPCCIDR: !GetAtt VPCStack.Outputs.VPCCIDR
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+  ClickHouseSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: !Join ['-',['ClickHouseSecret',!GetAtt BastionStack.Outputs.BastionSecurityGroupID]]
+      Description: "This secret has a dynamically generated secret password."
+      GenerateSecretString:
+        SecretStringTemplate: '{}'
+        GenerateStringKey: "password"
+        PasswordLength: 20
+        ExcludeCharacters: '"@/\|.,;!#$%^&*()_`[]{}<>=-+?~:'
+        ExcludePunctuation: true
+      Tags:
+        -
+          Key: AppName
+          Value: !Join ['-',['ClickHouseSecret',!GetAtt BastionStack.Outputs.BastionSecurityGroupID]]
   ZookeeperClusterStack: 
     Type: AWS::CloudFormation::Stack
     Properties: 
@@ -653,10 +675,14 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PrivateSubnetID:
+        PrivateSubnetID1:
           Fn::GetAtt: 
             - VPCStack
             - Outputs.PrivateSubnet1AID
+        PrivateSubnetID2:
+          Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet2AID
         KeyPairName: !Ref KeyPairName
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
         ZookeeperVersion: !Ref ZookeeperVersion
@@ -669,12 +695,14 @@ Resources:
         VolumeType: !Ref ZookeeperVolumeType
         VolumeSize: !Ref ZookeeperVolumeSize
         Iops: !Ref ZookeeperIops
-        CloudWatchAgentURL: !FindInMap [AWSRegion2CloudWatch, !Ref 'AWS::Region', AgentURL]
-        InstanceRoleArn: !FindInMap [AWSRegion2Arn, !Ref 'AWS::Region', Arn]
+        CloudWatchAgentURL: !If [IsChinaRegion, 'https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm', 'https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm']
+        InstanceRoleArn: !If [IsChinaRegion, 'aws-cn', 'aws']
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   ClickHouseBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BucketName: 
         !Join 
@@ -705,10 +733,6 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PublicSubnetID1: 
-          Fn::GetAtt: 
-            - VPCStack
-            - Outputs.PublicSubnet1ID
         PrivateSubnetID1:
           Fn::GetAtt: 
             - VPCStack
@@ -739,15 +763,17 @@ Resources:
         DistributedProductMode: !Ref DistributedProductMode
         LoadBalancing: !Ref LoadBalancing
         MaxDataPartSize: !Ref MaxDataPartSize
+        MoveFactor: !Ref MoveFactor
         GrafanaVersion: !Ref GrafanaVersion
         DemoDataSize: !Ref DemoDataSize
         ZookeeperPrivateIp1: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp1
         ZookeeperPrivateIp2: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp2
         ZookeeperPrivateIp3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp3
-        CloudWatchAgentURL: !FindInMap [AWSRegion2CloudWatch, !Ref 'AWS::Region', AgentURL]
-        InstanceRoleArn: !FindInMap [AWSRegion2Arn, !Ref 'AWS::Region', Arn]
+        CloudWatchAgentURL: !If [IsChinaRegion, 'https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm', 'https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm']
+        InstanceRoleArn: !If [IsChinaRegion, 'aws-cn', 'aws']
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        SecretId: !Ref ClickHouseSecret
   ClickHouseClusterArmStack: 
     Condition: IsArm
     Type: AWS::CloudFormation::Stack
@@ -765,10 +791,6 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PublicSubnetID1: 
-          Fn::GetAtt: 
-            - VPCStack
-            - Outputs.PublicSubnet1ID
         PrivateSubnetID1:
           Fn::GetAtt: 
             - VPCStack
@@ -799,13 +821,14 @@ Resources:
         DistributedProductMode: !Ref DistributedProductMode
         LoadBalancing: !Ref LoadBalancing
         MaxDataPartSize: !Ref MaxDataPartSize
+        MoveFactor: !Ref MoveFactor
         GrafanaVersion: !Ref GrafanaVersion
         DemoDataSize: !Ref DemoDataSize
         ZookeeperPrivateIp1: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp1
         ZookeeperPrivateIp2: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp2
         ZookeeperPrivateIp3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperPrivateIp3
-        CloudWatchAgentURL: !FindInMap [AWSRegion2CloudWatchArm, !Ref 'AWS::Region', AgentURL]
-        InstanceRoleArn: !FindInMap [AWSRegion2Arn, !Ref 'AWS::Region', Arn]
+        CloudWatchAgentURL: !If [IsChinaRegion, 'https://s3.cn-north-1.amazonaws.com.cn/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb', 'https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb']
+        InstanceRoleArn: !If [IsChinaRegion, 'aws-cn', 'aws']
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   Nlb2NodesStack:
@@ -952,7 +975,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        DashboardName: ClickHouse-Cluster-Dashboard
+        DashboardName: !Sub 'ClickHouse-Cluster-Dashboard-${AWS::Region}'
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseInstanceID1: !If 
           - IsX86 
@@ -972,6 +995,7 @@ Resources:
         ZookeeperInstanceID3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperInstanceID3
         ZookeeperImageId: !GetAtt ZookeeperClusterStack.Outputs.ImageId
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
+        AlarmEmail: !Ref AlarmEmail
   CloudWatchDashboard4Nodes:
     Condition: 4NodesCondition
     Type: AWS::CloudFormation::Stack
@@ -988,7 +1012,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        DashboardName: ClickHouse-Cluster-Dashboard
+        DashboardName: !Sub 'ClickHouse-Cluster-Dashboard-${AWS::Region}'
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseInstanceID1: !If 
           - IsX86 
@@ -1016,6 +1040,7 @@ Resources:
         ZookeeperInstanceID3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperInstanceID3
         ZookeeperImageId: !GetAtt ZookeeperClusterStack.Outputs.ImageId
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
+        AlarmEmail: !Ref AlarmEmail
   CloudWatchDashboard6Nodes:
     Condition: 6NodesCondition
     Type: AWS::CloudFormation::Stack
@@ -1032,7 +1057,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        DashboardName: ClickHouse-Cluster-Dashboard
+        DashboardName: !Sub 'ClickHouse-Cluster-Dashboard-${AWS::Region}'
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseInstanceID1: !If 
           - IsX86 
@@ -1068,6 +1093,7 @@ Resources:
         ZookeeperInstanceID3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperInstanceID3
         ZookeeperImageId: !GetAtt ZookeeperClusterStack.Outputs.ImageId
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
+        AlarmEmail: !Ref AlarmEmail
   CloudWatchDashboard8Nodes:
     Condition: 8NodesCondition
     Type: AWS::CloudFormation::Stack
@@ -1084,7 +1110,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        DashboardName: ClickHouse-Cluster-Dashboard
+        DashboardName: !Sub 'ClickHouse-Cluster-Dashboard-${AWS::Region}'
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseInstanceID1: !If 
           - IsX86 
@@ -1128,6 +1154,7 @@ Resources:
         ZookeeperInstanceID3: !GetAtt ZookeeperClusterStack.Outputs.ZookeeperInstanceID3
         ZookeeperImageId: !GetAtt ZookeeperClusterStack.Outputs.ImageId
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
+        AlarmEmail: !Ref AlarmEmail
 Outputs:
   VPCCIDR:
     Description: The VPCCIDR for DW vpc
@@ -1157,17 +1184,14 @@ Outputs:
     Condition: 8NodesCondition
     Description: Network Load Balancer with port 8123 in private subnet 1
     Value: !GetAtt Nlb8NodesStack.Outputs.ElbDNSName
-  GrafanaDashboard:
-    Condition: IsX86
-    Description: Grafana Dashboard of ClickHouse cluster
-    Value: !Join 
-      - ''
-      - - 'http://'
-        - !GetAtt ClickHouseClusterStack.Outputs.ClickHouseAdminPublicDnsName
-        - ':3000'
   CloudWatchDashboard:
     Description: CloudWatch Dashboard of ClickHouse cluster
-    Value: !FindInMap [AWSRegion2CloudWatchDashboard, !Ref 'AWS::Region', DashboardURL]
+    Value: !If [IsChinaRegion, !Sub 'https://console.amazonaws.cn/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard-${AWS::Region}', !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard-${AWS::Region}']
+  DBPassword:
+    Description: Dynamically generate a random text string stored in SecretsManager to use as a password
+    Value: !If [IsChinaRegion, 
+      !Join ['', [!Sub 'https://console.amazonaws.cn/secretsmanager/home?region=${AWS::Region}#!/secret?name=', !Ref ClickHouseSecret]], 
+      !Join ['', [!Sub 'https://console.aws.amazon.com/secretsmanager/home?region=${AWS::Region}#!/secret?name=', !Ref ClickHouseSecret]]]
 Rules:
   RegionValid:
     RuleCondition: !Or 
@@ -1183,4 +1207,10 @@ Rules:
             - - 'cn-north-1'
               - 'cn-northwest-1'
             - !Ref QSS3BucketRegion
+        AssertDescription: ''
+      - Assert: 
+          'Fn::Contains':
+            - - 'aws-cn-quickstart'
+              - 'aws-cn-quickstart-wqqiao'
+            - !Ref QSS3BucketName
         AssertDescription: ''
