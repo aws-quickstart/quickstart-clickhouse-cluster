@@ -7,7 +7,7 @@
 |Elastic IP addresses | 3
 |Security groups | 3
 |AWS Identity and Access Management (IAM) roles | 2
-|Auto Scaling groups | 1
+|Auto Scaling groups | 2
 |Network Load Balancers | 1
 |CloudWatch dashboard | 1
 |S3 bucket | 1

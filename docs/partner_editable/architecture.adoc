@@ -36,8 +36,8 @@ Shell (SSH) access to EC2 instances in public and private subnets.*
 * A private *S3 bucket* is created for tiered storage (local disk first and S3 with a move factor) of the ClickHouse cluster with the following naming rules: "clickhouse-data-vpcid".
 * An *Amazon CloudWatch Logs* enables you to centralize the logs from the ClickHouse cluster and adjust the log retention policy.
 * An *Amazon CloudWatch dashboard* to monitor the CPU, memory, disk IO and network on the EC2 instances in the ClickHouse and Zookeeper cluster, send an Amazon Simple Notification Service (Amazon SNS) email notification when the alarm is triggered.
-** When CPU utilization (cpu_usage_user and cpu_usage_system from CloudWatch agent) higher than 90% and continue more than 5 minutes.
-** When memory utilization (mem_used_percent from CloudWatch agent) higher than 90% and continue more than 5 minutes.
+** When CPU utilization (cpu_usage_user and cpu_usage_system from CloudWatch agent) higher than 70% and continue more than 5 minutes.
+** When memory utilization (mem_used_percent from CloudWatch agent) higher than 70% and continue more than 5 minutes.
 ** Disk IOPS (diskio_writes and diskio_reads from CloudWatch agent).
 ** Network throughout (net_bytes_sent and net_bytes_recv from CloudWatch agent).
 
