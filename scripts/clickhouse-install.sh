@@ -43,6 +43,7 @@ yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
 yum install clickhouse-server-$1 clickhouse-client-$1 -y
 
 if [ ! -d "/etc/clickhouse-server" ]; then
+    rpm --import https://mirrors.tuna.tsinghua.edu.cn/clickhouse/CLICKHOUSE-KEY.GPG
     yum-config-manager --add-repo https://mirrors.tuna.tsinghua.edu.cn/clickhouse/rpm/stable/x86_64
     yum install clickhouse-server-$1 clickhouse-client-$1 -y
 fi
