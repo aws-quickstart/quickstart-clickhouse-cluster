@@ -147,6 +147,19 @@ Conditions:
   4NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '4'] 
   6NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '6'] 
   8NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '8']
+  MoreThan2NodesCondition: !Or 
+    - !Equals [!Ref 'ClickHouseNodeCount', '2'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '4'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '6'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '8']
+  MoreThan4NodesCondition: !Or  
+    - !Equals [!Ref 'ClickHouseNodeCount', '4'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '6'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '8']
+  MoreThan6NodesCondition: !Or 
+    - !Equals [!Ref 'ClickHouseNodeCount', '6'] 
+    - !Equals [!Ref 'ClickHouseNodeCount', '8']
+  MoreThan8NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '8']
 Resources:
   CloudWatchDashboard2Nodes:
     Condition: 2NodesCondition
@@ -1005,7 +1018,7 @@ Resources:
           Protocol: "email"
       TopicName: SNSClickHouseTopic
   CPUAlarm1:
-    Condition: 2NodesCondition
+    Condition: MoreThan2NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: CPU alarm for ClickHouse node1
@@ -1023,7 +1036,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceID1
   CPUAlarm2:
-    Condition: 2NodesCondition
+    Condition: MoreThan2NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: CPU alarm for ClickHouse node2
@@ -1041,7 +1054,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceID2
   CPUAlarm3:
-    Condition: 4NodesCondition
+    Condition: MoreThan4NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: CPU alarm for ClickHouse node3
@@ -1059,7 +1072,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceID3
   CPUAlarm4:
-    Condition: 4NodesCondition
+    Condition: MoreThan4NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: CPU alarm for ClickHouse node4
@@ -1077,7 +1090,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceID4
   CPUAlarm5:
-    Condition: 6NodesCondition
+    Condition: MoreThan6NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: CPU alarm for ClickHouse node5
@@ -1095,7 +1108,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceID5
   CPUAlarm6:
-    Condition: 6NodesCondition
+    Condition: MoreThan6NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: CPU alarm for ClickHouse node6
@@ -1113,7 +1126,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceID6
   CPUAlarm7:
-    Condition: 8NodesCondition
+    Condition: MoreThan8NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: CPU alarm for ClickHouse node7
@@ -1131,7 +1144,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceID7
   CPUAlarm8:
-    Condition: 8NodesCondition
+    Condition: MoreThan8NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: CPU alarm for ClickHouse node8
@@ -1149,7 +1162,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceID8
   MemAlarm1:
-    Condition: 2NodesCondition
+    Condition: MoreThan2NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Mem alarm for ClickHouse node1
@@ -1173,7 +1186,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceType
   MemAlarm2:
-    Condition: 2NodesCondition
+    Condition: MoreThan2NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Mem alarm for ClickHouse node2
@@ -1197,7 +1210,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceType
   MemAlarm3:
-    Condition: 4NodesCondition
+    Condition: MoreThan4NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Mem alarm for ClickHouse node3
@@ -1221,7 +1234,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceType
   MemAlarm4:
-    Condition: 4NodesCondition
+    Condition: MoreThan4NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Mem alarm for ClickHouse node4
@@ -1245,7 +1258,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceType
   MemAlarm5:
-    Condition: 6NodesCondition
+    Condition: MoreThan6NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Mem alarm for ClickHouse node5
@@ -1269,7 +1282,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceType
   MemAlarm6:
-    Condition: 6NodesCondition
+    Condition: MoreThan6NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Mem alarm for ClickHouse node6
@@ -1293,7 +1306,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceType
   MemAlarm7:
-    Condition: 8NodesCondition
+    Condition: MoreThan8NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Mem alarm for ClickHouse node7
@@ -1317,7 +1330,7 @@ Resources:
         Value:
           Ref: ClickHouseInstanceType
   MemAlarm8:
-    Condition: 8NodesCondition
+    Condition: MoreThan8NodesCondition
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Mem alarm for ClickHouse node8
