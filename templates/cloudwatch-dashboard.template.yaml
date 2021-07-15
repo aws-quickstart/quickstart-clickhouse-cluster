@@ -1166,6 +1166,12 @@ Resources:
       - Name: InstanceId
         Value:
           Ref: ClickHouseInstanceID1
+      - Name: ImageId
+        Value: 
+          Ref: ClickHouseImageId
+      - Name: InstanceType
+        Value:
+          Ref: ClickHouseInstanceType
   MemAlarm2:
     Condition: 2NodesCondition
     Type: AWS::CloudWatch::Alarm
@@ -1184,6 +1190,12 @@ Resources:
       - Name: InstanceId
         Value:
           Ref: ClickHouseInstanceID2
+      - Name: ImageId
+        Value: 
+          Ref: ClickHouseImageId
+      - Name: InstanceType
+        Value:
+          Ref: ClickHouseInstanceType
   MemAlarm3:
     Condition: 4NodesCondition
     Type: AWS::CloudWatch::Alarm
@@ -1202,6 +1214,12 @@ Resources:
       - Name: InstanceId
         Value:
           Ref: ClickHouseInstanceID3
+      - Name: ImageId
+        Value: 
+          Ref: ClickHouseImageId
+      - Name: InstanceType
+        Value:
+          Ref: ClickHouseInstanceType
   MemAlarm4:
     Condition: 4NodesCondition
     Type: AWS::CloudWatch::Alarm
@@ -1220,6 +1238,12 @@ Resources:
       - Name: InstanceId
         Value:
           Ref: ClickHouseInstanceID4
+      - Name: ImageId
+        Value: 
+          Ref: ClickHouseImageId
+      - Name: InstanceType
+        Value:
+          Ref: ClickHouseInstanceType
   MemAlarm5:
     Condition: 6NodesCondition
     Type: AWS::CloudWatch::Alarm
@@ -1238,6 +1262,12 @@ Resources:
       - Name: InstanceId
         Value:
           Ref: ClickHouseInstanceID5
+      - Name: ImageId
+        Value: 
+          Ref: ClickHouseImageId
+      - Name: InstanceType
+        Value:
+          Ref: ClickHouseInstanceType
   MemAlarm6:
     Condition: 6NodesCondition
     Type: AWS::CloudWatch::Alarm
@@ -1256,6 +1286,12 @@ Resources:
       - Name: InstanceId
         Value:
           Ref: ClickHouseInstanceID6
+      - Name: ImageId
+        Value: 
+          Ref: ClickHouseImageId
+      - Name: InstanceType
+        Value:
+          Ref: ClickHouseInstanceType
   MemAlarm7:
     Condition: 8NodesCondition
     Type: AWS::CloudWatch::Alarm
@@ -1274,6 +1310,12 @@ Resources:
       - Name: InstanceId
         Value:
           Ref: ClickHouseInstanceID7
+      - Name: ImageId
+        Value: 
+          Ref: ClickHouseImageId
+      - Name: InstanceType
+        Value:
+          Ref: ClickHouseInstanceType
   MemAlarm8:
     Condition: 8NodesCondition
     Type: AWS::CloudWatch::Alarm
@@ -1292,3 +1334,9 @@ Resources:
       - Name: InstanceId
         Value:
           Ref: ClickHouseInstanceID8
+      - Name: ImageId
+        Value: 
+          Ref: ClickHouseImageId
+      - Name: InstanceType
+        Value:
+          Ref: ClickHouseInstanceType
