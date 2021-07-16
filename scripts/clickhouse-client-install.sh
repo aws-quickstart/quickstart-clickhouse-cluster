@@ -221,6 +221,8 @@ sed -i "s|ontimeto|$ontimeto|" /home/ec2-user/tools/install/demodata/downloaddat
 chmod +x /home/ec2-user/tools/install/demodata/downloaddata.sh 
 ./downloaddata.sh 
 sleep 1
+# Retry to download the missing file
+./downloaddata.sh
 
 ls -1 *.zip | xargs -I{} -P $(nproc) bash -c "echo {}; unzip -cq {} '*.csv' | sed 's/\.00//g' | clickhouse-client --host ${node1} --password $2 --input_format_with_names_use_header=0 --query='INSERT INTO ontime FORMAT CSVWithNames'"
 sleep 1
