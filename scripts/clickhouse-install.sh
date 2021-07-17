@@ -332,17 +332,28 @@ echo "      </s3>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "    </disks>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "    <policies>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "      <tiered>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "        <volumes>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "          <default>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "            <disk>default</disk>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "            <max_data_part_size_bytes>${17}</max_data_part_size_bytes>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "          </default>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "          <s3>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "            <disk>s3</disk>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "          </s3>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "        </volumes>" >> /etc/clickhouse-server/config.d/storage.xml
+#echo "        <move_factor>$6</move_factor>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        <volumes>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "          <default>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "            <disk>default</disk>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "            <max_data_part_size_bytes>${17}</max_data_part_size_bytes>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "            <perform_ttl_move_on_insert>0</perform_ttl_move_on_insert>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "          </default>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "          <s3>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "            <disk>s3</disk>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "          </s3>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "          <main>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "              <disk>default</disk>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "              <max_data_part_size_bytes>${17}</max_data_part_size_bytes>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "              <perform_ttl_move_on_insert>false</perform_ttl_move_on_insert>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "          </main>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "          <external>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "              <disk>s3</disk>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "          </external>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        </volumes>" >> /etc/clickhouse-server/config.d/storage.xml
-echo "        <move_factor>$6</move_factor>" >> /etc/clickhouse-server/config.d/storage.xml
+echo "        <move_factor>${6}</move_factor>" >> /etc/clickhouse-server/config.d/storage.xml
+
 echo "      </tiered>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "      <s3only>" >> /etc/clickhouse-server/config.d/storage.xml
 echo "        <volumes>" >> /etc/clickhouse-server/config.d/storage.xml
@@ -365,6 +376,11 @@ echo "</yandex>" >> /etc/clickhouse-server/config.d/macros.xml
 
 chown -R clickhouse.clickhouse /home/clickhouse/
 chown -R clickhouse.clickhouse /etc/clickhouse-server/
+
+echo "* soft nofile 65536" >> /etc/security/limits.conf
+echo "* hard nofile 65536" >> /etc/security/limits.conf
+echo "* soft nproc 131072" >> /etc/security/limits.conf
+echo "* hard nproc 131072" >> /etc/security/limits.conf
 
 systemctl stop clickhouse-server
 systemctl start clickhouse-server

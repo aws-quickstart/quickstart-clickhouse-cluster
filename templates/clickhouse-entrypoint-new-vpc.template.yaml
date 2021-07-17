@@ -476,7 +476,7 @@ Parameters:
     - 0.7
     - 0.8
     - 0.9
-    Default: 0.6
+    Default: 0.3
     Description: In case of cold option a data can be moved to S3 if local disk free size will be smaller than move_factor * disk_size.
     Type: String
   GrafanaVersion:

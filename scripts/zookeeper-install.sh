@@ -41,3 +41,8 @@ echo "autopurge.purgeInterval=1" >> /usr/local/apache-zookeeper-${1}-bin/conf/zo
 echo "preAllocSize=131072" >> /usr/local/apache-zookeeper-${1}-bin/conf/zoo.cfg
 echo "snapCount=3000000" >> /usr/local/apache-zookeeper-${1}-bin/conf/zoo.cfg
 echo "clientPort=2181" >> /usr/local/apache-zookeeper-${1}-bin/conf/zoo.cfg
+
+echo "* soft nofile 65536" >> /etc/security/limits.conf
+echo "* hard nofile 65536" >> /etc/security/limits.conf
+echo "* soft nproc 131072" >> /etc/security/limits.conf
+echo "* hard nproc 131072" >> /etc/security/limits.conf
