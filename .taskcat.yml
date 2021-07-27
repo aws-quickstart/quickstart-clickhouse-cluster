@@ -1,0 +1,14 @@
+project:
+  name: quickstart-clickhouse-cluster
+  regions:
+  - us-east-1
+  parameters:
+    QSS3BucketName: $[taskcat_autobucket]
+    QSS3BucketRegion: $[taskcat_current_region]
+tests:
+  default:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_2]
+      KeyPairName: override
+      AlarmEmail: override
+    template: ./templates/clickhouse-entrypoint-new-vpc.template.yaml
