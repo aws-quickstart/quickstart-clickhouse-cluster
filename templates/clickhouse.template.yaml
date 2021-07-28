@@ -49,6 +49,7 @@ Metadata:
       - ZookeeperPrivateIp2
       - ZookeeperPrivateIp3
       - InstanceRoleArn
+      - LatestAmiId
     - Label:
         default: ClickHouse operation configuration
       Parameters:
@@ -140,6 +141,8 @@ Metadata:
         default: AWS Quick Start S3 key prefix
       SecretId:
         default: Secret id in SecretsManager
+      LatestAmiId:
+        default: Reference the latest Amazon Linux AMI in a CloudFormation template
 Parameters: 
   PrivateSubnetID1: 
     Description: Private Subnet 1 ID.
