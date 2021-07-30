@@ -557,6 +557,9 @@ Resources:
         PublicSubnet2ID: !Ref PublicSubnet2ID
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !Ref VPCID
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+        QSS3KeyPrefix: !Sub '${QSS3KeyPrefix}submodules/quickstart-linux-bastion/'
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
