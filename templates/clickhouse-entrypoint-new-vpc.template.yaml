@@ -712,12 +712,12 @@ Resources:
           - ['clickhouse-data',!GetAtt VPCStack.Outputs.VPCID]
       VersioningConfiguration:
         Status: Enabled
-      IntelligentTieringConfigurations:
-        - Id: clickhouse-data-tier1
-          Status: Enabled
-          Tierings:
-            - AccessTier: ARCHIVE_ACCESS
-              Days: 180
+      #IntelligentTieringConfigurations:
+      #  - Id: clickhouse-data-tier1
+      #    Status: Enabled
+       #   Tierings:
+       #     - AccessTier: ARCHIVE_ACCESS
+       #       Days: 180
   ClickHouseClusterStack: 
     Condition: IsX86
     Type: AWS::CloudFormation::Stack
