@@ -7,6 +7,8 @@ tar -xvf /home/ec2-user/OpenJDK8U-jdk_x64_linux_hotspot_8u292b10.tar.gz
 sudo ln -s /home/ec2-user/jdk8u292-b10/bin/java /usr/local/bin/java
 sudo ln -s /home/ec2-user/jdk8u292-b10/bin/java /usr/bin/java
 if [ ! -d "/home/ec2-user/jdk8u292-b10" ]; then
+  rm -rf /usr/local/bin/java
+  rm -rf /usr/bin/java
   wget -P ./ -T 60 https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
   tar -xvf /home/ec2-user/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
   sudo ln -s /home/ec2-user/java-se-8u41-ri/bin/java /usr/local/bin/java
