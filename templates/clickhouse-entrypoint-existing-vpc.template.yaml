@@ -510,7 +510,8 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
   AlarmEmail: 
-    AllowedPattern: ^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$
+    #AllowedPattern: ^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$
+    AllowedPattern: \w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*
     ConstraintDescription: Incorrect email address.
     Description: "Email address to notify of operational issues."
     Type: "String"
