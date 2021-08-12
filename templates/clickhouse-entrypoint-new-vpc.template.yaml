@@ -2,6 +2,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: '(SO8019) - Deploy ClickHouse on Amazon Web Services in a new VPC. (qs-1s4ldl6pg)'
 Metadata:
   LICENSE: Apache License Version 2.0
+  QuickStartDocumentation:
+    EntrypointName: "Parameters for deploying into an new VPC"
+    Order: "1"
   AWS::CloudFormation::Interface:
     ParameterGroups:
     - Label:
