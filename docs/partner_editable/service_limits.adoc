@@ -9,7 +9,7 @@
 |AWS Identity and Access Management (IAM) roles | 2
 |Auto Scaling groups | 2
 |Network Load Balancers | 1
-|CloudWatch dashboard | 1
+|Amazon CloudWatch dashboard | 1
 |S3 bucket | 1
 |m5.xlarge instances (ClickHouse cluster)| 2
 |m5.xlarge instances (ClickHouse client)| 1
