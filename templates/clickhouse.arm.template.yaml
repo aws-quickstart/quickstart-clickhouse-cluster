@@ -1,6 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: (SO8019) - This template is used for setting up a ClickHouse cluster on Graviton2. (qs-1s4ldl6tu)
+Description: (SO8019) - This template is used for setting up a ClickHouse cluster on Graviton2. (qs-xxxxxxxxx)
+
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:

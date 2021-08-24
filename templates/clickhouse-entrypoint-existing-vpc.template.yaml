@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: (SO8019) - Deploy ClickHouse on Amazon Web Services in an existing VPC. (qs-1s4ldl6s1)
+Description: (SO8019) - Deploy ClickHouse on Amazon Web Services in an existing VPC. (qs-xxxxxxxxx)
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -558,9 +558,6 @@ Resources:
         PublicSubnet2ID: !Ref PublicSubnet2ID
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !Ref VPCID
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3BucketRegion: !Ref QSS3BucketRegion
-        QSS3KeyPrefix: !Sub '${QSS3KeyPrefix}submodules/quickstart-linux-bastion/'
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -1102,3 +1099,25 @@ Outputs:
     Value: !If [IsChinaRegion, 
       !Join ['', [!Sub 'https://console.amazonaws.cn/secretsmanager/home?region=${AWS::Region}#!/secret?name=', !Ref ClickHouseSecret]], 
       !Join ['', [!Sub 'https://console.aws.amazon.com/secretsmanager/home?region=${AWS::Region}#!/secret?name=', !Ref ClickHouseSecret]]]
+Rules:
+  RegionValid:
+    RuleCondition: !Or 
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-north-1
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-northwest-1
+    Assertions:
+      - Assert: 
+          'Fn::Contains':
+            - - 'cn-north-1'
+              - 'cn-northwest-1'
+            - !Ref QSS3BucketRegion
+        AssertDescription: ''
+      - Assert: 
+          'Fn::Contains':
+            - - 'aws-cn-quickstart'
+              - 'aws-cn-quickstart-wqqiao'
+            - !Ref QSS3BucketName
+        AssertDescription: ''
