@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: (SO8019) - Deploy ClickHouse on Amazon Web Services in an existing VPC. (qs-xxxxxxxxx)
+Description: '(SO8019) - Deploy ClickHouse on Amazon Web Services in a new VPC. (qs-xxxxxxxxx)'
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -7,12 +7,12 @@ Metadata:
     - Label:
         default: Network configuration
       Parameters:
-      - VPCID
+      - AvailabilityZones
       - VPCCIDR
-      - PublicSubnet1ID
-      - PublicSubnet2ID
-      - PrivateSubnet1AID
-      - PrivateSubnet2AID
+      - PrivateSubnet1CIDR
+      - PrivateSubnet2CIDR
+      - PublicSubnet1CIDR
+      - PublicSubnet2CIDR
       - RemoteAccessCIDR
       - AccessCIDR
     - Label:
@@ -57,6 +57,7 @@ Metadata:
       - MaxThreads
       - Port
       - DemoDataSize
+      - SourceCodeStorage
       - LatestAmiId
     - Label:
         default: ClickHouse operation configuration
@@ -70,22 +71,22 @@ Metadata:
       - QSS3BucketRegion
       - QSS3KeyPrefix
     ParameterLabels:
-      VPCID: 
-        default: VPC ID
-      PublicSubnet1ID:
-        default: Public subnet 1 ID
-      PublicSubnet2ID:
-        default: Public subnet 2 ID
-      PrivateSubnet1AID:
-        default: Private subnet 1 ID
-      PrivateSubnet2AID:
-        default: Private subnet 2 ID
+      AvailabilityZones:
+        default: Availability Zones
+      PrivateSubnet1CIDR:
+        default: Private subnet 1 CIDR
+      PrivateSubnet2CIDR:
+        default: Private subnet 2 CIDR
+      PublicSubnet1CIDR:
+        default: Public subnet 1 CIDR
+      PublicSubnet2CIDR:
+        default: Public subnet 2 CIDR
       VPCCIDR:
         default: VPC CIDR
-      AccessCIDR:
-        default: Permitted IP range
       RemoteAccessCIDR:
         default: Allowed bastion external access CIDR
+      AccessCIDR:
+        default: Permitted IP range
       KeyPairName:
         default: Key pair name
       BastionAMIOS:
@@ -142,10 +143,10 @@ Metadata:
         default: Max memory usage
       MaxThreads:
         default: Max threads
-      Port:
-        default: ClickHouse service port
       DemoDataSize:
         default: Demo data size
+      Port:
+        default: ClickHouse service port
       GrafanaVersion:
         default: Grafana version
       QSS3BucketName:
@@ -158,27 +159,42 @@ Metadata:
         default: Alarm email address
       LatestAmiId:
         default: Latest Amazon Linux2 AMI ID
+      SourceCodeStorage:
+        default: The ClickHouse source code storage
 Parameters:
-  VPCID:
-    Description: The existing VPC ID.
+  AvailabilityZones:
+    Description: 'List of Availability Zones to use for the subnets in the VPC. Note:
+      The logical order is preserved ( More AZ will improve the availability of the system, less AZ will reduce the cost of data traffic between AZ ).'
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+  PrivateSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.0.0/19
+    Description: 'CIDR block for private subnet 1 located in Availability Zone 1.'
+    Type: String
+  PrivateSubnet2CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.32.0/19
+    Description: '(Please ignore if you choose 1 AZs)CIDR block for private subnet 2 located in Availability Zone 2.'
+    Type: String
+  PublicSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.128.0/20
+    Description: 'CIDR block for the public DMZ subnet 1 located in Availability Zone 1.'
+    Type: String
+  PublicSubnet2CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.144.0/20
+    Description: (Please ignore if you choose 1 AZs)CIDR block for the public DMZ subnet 2 located in Availability Zone 2.
     Type: String
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
     Default: 10.0.0.0/16
     Description: CIDR block for the VPC.
-    Type: String
-  PublicSubnet1ID:
-    Description: Public subnet 1 ID.
-    Type: String
-  PublicSubnet2ID:
-    Description: Public subnet 2 ID.
-    Type: String
-  PrivateSubnet1AID:
-    Description: Private subnet 1 ID.
-    Type: String
-  PrivateSubnet2AID:
-    Description: Private subnet 2 ID.
     Type: String
   RemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
@@ -199,6 +215,9 @@ Parameters:
   BastionAMIOS:
     AllowedValues:
       - Amazon-Linux2-HVM
+      - CentOS-7-HVM
+      - Ubuntu-Server-20.04-LTS-HVM
+      - SUSE-SLES-15-HVM
     Default: Amazon-Linux2-HVM
     Description: The Linux distribution for the AMI to be used for the bastion instances.
     Type: String
@@ -313,51 +332,24 @@ Parameters:
   ClickHouseInstanceType: 
     Description: Amazon EC2 instance type for the ClickHouse nodes.
     Type: String
-    Default: m5.xlarge
+    Default: r6g.2xlarge
     AllowedValues: 
-      #- r6gd.xlarge
-      #- r6gd.2xlarge
-      #- r6gd.4xlarge
-      #- r6gd.8xlarge
-      - t2.micro
-      - t2.small
-      - t2.medium
-      - t2.large
-      - m4.large
-      - m4.xlarge
-      - m4.2xlarge
-      - m4.4xlarge
-      - m4.10xlarge
-      - m5.large
-      - m5.xlarge
-      - m5.2xlarge
-      - m5.4xlarge
-      - c4.large
-      - c4.xlarge
-      - c4.2xlarge
-      - c4.4xlarge
-      - c4.8xlarge
-      - r5.large
-      - r5.xlarge
-      - r5.2xlarge
-      - r5.4xlarge
-      - r5.8xlarge
-      - i3.large
-      - i3.xlarge
-      - i3.2xlarge
-      - i3.4xlarge
-      - i3.8xlarge
-      - i3.16xlarge
+      - r6g.xlarge
+      - r6g.2xlarge
+      - r6g.4xlarge
+      - r6g.8xlarge
+      - r6g.12xlarge
+      - r6g.16xlarge
   ClickHouseVersion:
     AllowedValues:
-    - '21.4.5.46-2'
-    - '21.5.5.12-2'
-    Default: '21.4.5.46-2'
+    - '21.4.5.46'
+    - '21.5.5.12'
+    Default: '21.4.5.46'
     Description: ClickHouse version (21.4.5 or 21.5.5).
     Type: String
   ClickHouseTimezone:
-    Default: Asia/Shanghai #America/Los_Angeles
-    Description: ClickHouse time zone.
+    Default: 'Asia/Shanghai' #America/Los_Angeles
+    Description: 'ClickHouse time zone.'
     Type: String
   ClickHouseNodeCount:
     Type: String
@@ -371,13 +363,13 @@ Parameters:
   Architecture:
     Description:  Amazon graviton2-based EC2 instances provide up to 40 percent better price/performance over comparable current generation x86-based instances.
     Type: String
-    Default: X86
+    Default: ARM
     AllowedValues: 
-      - X86
+      - ARM
   ClickHouseDeviceName:
     Description: The device name (for example, /dev/sdh or xvdh).
     Type: String
-    Default: /dev/xvdh
+    Default: /dev/nvme1n1
   ClickHouseVolumeSize: 
     Type: String
     Description: EBS volume size (data) to be attached to node in GBs.
@@ -421,7 +413,7 @@ Parameters:
     - '8'
     - '16'
     Default: '4'
-    Description: The max_insert_threads for ClickHouse default users.xml. The maximum number of threads to run the INSERT SELECT query.
+    Description: 'The max_insert_threads for ClickHouse default users.xml. The maximum number of threads to start the INSERT SELECT query.'
     Type: String
   DistributedProductMode:
     AllowedValues:
@@ -430,7 +422,7 @@ Parameters:
     - 'global'
     - 'allow'
     Default: 'global'
-    Description: The distributed_product_mode for ClickHouse default users.xml. ClickHouse applies this setting when the query contains the product of distributed tables, i.e. when the query for a distributed table contains a non-GLOBAL subquery for the distributed table.
+    Description: The distributed_product_mode for ClickHouse default users.xml // ClickHouse applies this setting when the query contains the product of distributed tables, i.e. when the query for a distributed table contains a non-GLOBAL subquery for the distributed table.
     Type: String
   LoadBalancing:
     AllowedValues:
@@ -439,7 +431,7 @@ Parameters:
     - 'in_order'
     - 'first_or_random'
     Default: 'nearest_hostname'
-    Description: The load_balancing for ClickHouse default users.xml. Specifies the algorithm of replicas selection that is used for distributed query processing.
+    Description: The load_balancing for ClickHouse default users.xml // Specifies the algorithm of replicas selection that is used for distributed query processing.
     Type: String
   MaxDataPartSize:
     AllowedValues:
@@ -447,7 +439,7 @@ Parameters:
     - '5368709120'
     - '10737418240'
     Default: '1073741824'
-    Description: The max_data_part_size_bytes for ClickHouse default storage.xml. Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
+    Description: The max_data_part_size_bytes for ClickHouse default storage.xml //  Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
     Type: String
   MoveFactor:
     AllowedValues:
@@ -464,9 +456,9 @@ Parameters:
     Description: In case of cold option a data can be moved to S3 if local disk free size will be smaller than move_factor * disk_size.
     Type: String
   GrafanaVersion:
-    Default: 8.0.1-1
-    Description: Grafana version.
-    Type: String
+      Default: 8.0.1
+      Description: Grafana version (ARM64).
+      Type: String
   Port:
     AllowedValues:
     - 8123
@@ -515,6 +507,10 @@ Parameters:
     ConstraintDescription: Incorrect email address.
     Description: "Email address to notify of operational issues."
     Type: "String"
+  SourceCodeStorage:
+    Type: String
+    Default: github
+    Description: The ClickHouse source code storage. Support github or s3://bucketname/ClickHouse.zip.
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   UsingSingleAZ: !Equals [!Ref SingleAvailableZone, '1az']
@@ -532,6 +528,58 @@ Conditions:
   6NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '6'] 
   8NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '8']
 Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: 
+        Fn::Sub:
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template.yaml
+            - S3Region: !If 
+                - UsingDefaultBucket
+                - !Ref 'AWS::Region'
+                - !Ref QSS3BucketRegion
+              S3Bucket: !If 
+                - UsingDefaultBucket
+                - !Sub '${QSS3BucketName}-${AWS::Region}'
+                - !Ref QSS3BucketName
+      Parameters:
+        AvailabilityZones:
+          !Join
+          - ','
+          - !Ref AvailabilityZones
+        NumberOfAZs: '2'
+        CreateNATGateways: 'true'
+        PrivateSubnet1ACIDR: !Ref PrivateSubnet1CIDR
+        PrivateSubnet2ACIDR: !Ref PrivateSubnet2CIDR
+        PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
+        PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
+        VPCCIDR: !Ref VPCCIDR
+        CreateAdditionalPrivateSubnets: 'false'
+        CreatePublicSubnets: 'true'
+        CreatePrivateSubnets: 'true'
+        CreateVPCFlowLogsToCloudWatch: 'false'
+        PrivateSubnet1BCIDR: 10.0.192.0/21
+        PrivateSubnet2BCIDR: 10.0.200.0/21
+        PrivateSubnet3ACIDR: 10.0.64.0/19
+        PrivateSubnet3BCIDR: 10.0.208.0/21
+        PrivateSubnet4ACIDR: 10.0.96.0/19
+        PrivateSubnet4BCIDR: 10.0.216.0/21
+        PrivateSubnetATag1: Network=Private
+        PrivateSubnetATag2: ''
+        PrivateSubnetATag3: ''
+        PrivateSubnetBTag1: Network=Private
+        PrivateSubnetBTag2: ''
+        PrivateSubnetBTag3: ''
+        PublicSubnet3CIDR: 10.0.160.0/20
+        PublicSubnet4CIDR: 10.0.176.0/20
+        PublicSubnetTag1: Network=Public
+        PublicSubnetTag2: ''
+        PublicSubnetTag3: ''
+        VPCFlowLogsCloudWatchKMSKey: ''
+        VPCFlowLogsLogGroupRetention: 14
+        VPCFlowLogsMaxAggregationInterval: 600
+        VPCFlowLogsTrafficType: REJECT
+        VPCTenancy: default
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -554,10 +602,10 @@ Resources:
         NumBastionHosts: !Ref NumBastionHosts
         KeyPairName: !Ref KeyPairName
         EnableTCPForwarding: 'true'
-        PublicSubnet1ID: !Ref PublicSubnet1ID
-        PublicSubnet2ID: !Ref PublicSubnet2ID
+        PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
+        PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
-        VPCID: !Ref VPCID
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -574,8 +622,8 @@ Resources:
               - !Ref QSS3BucketName
       Parameters:
         AccessCIDR: !Ref AccessCIDR
-        VPCID: !Ref VPCID
-        VPCCIDR: !Ref VPCCIDR
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        VPCCIDR: !GetAtt VPCStack.Outputs.VPCCIDR
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
   ClickHouseSecret:
     Type: 'AWS::SecretsManager::Secret'
@@ -608,8 +656,14 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PrivateSubnetID1: !Ref PrivateSubnet1AID
-        PrivateSubnetID2: !Ref PrivateSubnet2AID
+        PrivateSubnetID1:
+          Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet1AID
+        PrivateSubnetID2:
+          Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet2AID
         KeyPairName: !Ref KeyPairName
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
         ZookeeperVersion: !Ref ZookeeperVersion
@@ -634,7 +688,7 @@ Resources:
       BucketName: 
         !Join 
           - '-' 
-          - ['clickhouse-data',!Ref VPCID]
+          - ['clickhouse-data',!GetAtt VPCStack.Outputs.VPCID]
       VersioningConfiguration:
         Status: Enabled
       IntelligentTieringConfigurations:
@@ -660,11 +714,18 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PrivateSubnetID1: !Ref PrivateSubnet1AID
+        PrivateSubnetID1:
+          Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet1AID
         PrivateSubnetID2: !If
           - UsingSingleAZ 
-          - !Ref PrivateSubnet1AID
-          - !Ref PrivateSubnet2AID
+          - Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet1AID
+          - Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet2AID
         ClickHouseServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup
         AdminServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.AdminServerSecurityGroup
         KeyPairName: !Ref KeyPairName
@@ -711,11 +772,18 @@ Resources:
               - !Ref QSS3BucketName
       Parameters: 
         RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-        PrivateSubnetID1: !Ref PrivateSubnet1AID
+        PrivateSubnetID1:
+          Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet1AID
         PrivateSubnetID2: !If
           - UsingSingleAZ 
-          - !Ref PrivateSubnet1AID
-          - !Ref PrivateSubnet2AID
+          - Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet1AID
+          - Fn::GetAtt: 
+            - VPCStack
+            - Outputs.PrivateSubnet2AID
         ClickHouseServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup
         AdminServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.AdminServerSecurityGroup
         KeyPairName: !Ref KeyPairName
@@ -745,6 +813,7 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         SecretId: !Ref ClickHouseSecret
+        SourceCodeStorage: !Ref SourceCodeStorage
   Nlb2NodesStack:
     Condition: 2NodesCondition
     Type: AWS::CloudFormation::Stack
@@ -761,10 +830,10 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        VPCID: !Ref VPCID
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
         Subnets: !Join
           - ','
-          - [ !Ref PrivateSubnet1AID ]
+          - [ !GetAtt VPCStack.Outputs.PrivateSubnet1AID ]
         NodeCount: !Ref ClickHouseNodeCount
         Port: !Ref Port
         EC2Instance1: !If 
@@ -787,10 +856,10 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        VPCID: !Ref VPCID
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
         Subnets: !Join
           - ','
-          - [ !Ref PrivateSubnet1AID ]
+          - [ !GetAtt VPCStack.Outputs.PrivateSubnet1AID ]
         NodeCount: !Ref ClickHouseNodeCount
         Port: !Ref Port
         EC2Instance1: !If 
@@ -817,10 +886,10 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        VPCID: !Ref VPCID
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
         Subnets: !Join
           - ','
-          - [ !Ref PrivateSubnet1AID ]
+          - [ !GetAtt VPCStack.Outputs.PrivateSubnet1AID ]
         NodeCount: !Ref ClickHouseNodeCount
         Port: !Ref Port
         EC2Instance1: !If 
@@ -851,10 +920,10 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        VPCID: !Ref VPCID
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
         Subnets: !Join
           - ','
-          - [ !Ref PrivateSubnet1AID ]
+          - [ !GetAtt VPCStack.Outputs.PrivateSubnet1AID ]
         NodeCount: !Ref ClickHouseNodeCount
         Port: !Ref Port
         EC2Instance1: !If 
@@ -1070,6 +1139,12 @@ Resources:
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
         AlarmEmail: !Ref AlarmEmail
 Outputs:
+  VPCCIDR:
+    Description: The VPCCIDR for DW vpc
+    Value: !GetAtt VPCStack.Outputs.VPCCIDR
+  S3VPCEndpoint:
+    Description: The S3VPCEndpoint for ClickHouse nodes
+    Value: !GetAtt VPCStack.Outputs.S3VPCEndpoint
   CloudWatchLogs:
     Description: CloudWatch Logs GroupName. Your SSH logs will be stored here.
     Value: !GetAtt BastionStack.Outputs.CloudWatchLogs
@@ -1093,7 +1168,7 @@ Outputs:
     Description: Network Load Balancer with port 8123 in private subnet 1
     Value: !GetAtt Nlb8NodesStack.Outputs.ElbDNSName
   CloudWatchDashboard:
-    Description: CloudWatch dashboard of ClickHouse cluster
+    Description: CloudWatch Dashboard of ClickHouse cluster
     Value: !If [IsChinaRegion, !Sub 'https://console.amazonaws.cn/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard-${AWS::Region}', !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=ClickHouse-Cluster-Dashboard-${AWS::Region}']
   DBPassword:
     Description: Dynamically generate a random text string stored in SecretsManager to use as a password
@@ -1121,4 +1196,8 @@ Rules:
             - - 'aws-cn-quickstart'
               - 'aws-cn-quickstart-wqqiao'
             - !Ref QSS3BucketName
+        AssertDescription: ''
+      - Assert: 
+          !Not 
+            - !Equals [!Ref SourceCodeStorage, 'github']
         AssertDescription: ''

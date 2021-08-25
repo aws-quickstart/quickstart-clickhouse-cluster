@@ -56,7 +56,7 @@ Metadata:
       - GrafanaVersion
       - CloudWatchAgentURL
     - Label:
-        default: AWS Quick Start configuration
+        default: Amazon Web Services Quick Start configuration
       Parameters:
       - QSS3BucketName
       - QSS3KeyPrefix
