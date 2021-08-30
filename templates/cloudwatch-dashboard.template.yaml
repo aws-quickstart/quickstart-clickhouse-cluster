@@ -410,14 +410,14 @@ Resources:
               "height":6,
               "properties":{
                 "metrics":[
-                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "xvdh", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "xvdh", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "xvdh", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "xvdh", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "xvdh", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "xvdh", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "xvdh", "InstanceType", "${ClickHouseInstanceType}"],
-                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "xvdh", "InstanceType", "${ClickHouseInstanceType}"]
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_writes", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID1}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID2}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID3}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"],
+                  ["ClickHouseNamespace", "diskio_reads", "InstanceId", "${ClickHouseInstanceID4}", "ImageId", "${ClickHouseImageId}", "name", "nvme0n1", "InstanceType", "${ClickHouseInstanceType}"]
                 ],
                 "period":300,
                 "stat":"Average",
