@@ -310,6 +310,7 @@ find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<path>/v
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|/var/lib/clickhouse/|/home/clickhouse/data/|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<!-- <timezone>Europe/Moscow</timezone> -->|<timezone>$7</timezone>|g"
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|<!-- <listen_host>0.0.0.0</listen_host> -->|<listen_host>0.0.0.0</listen_host>|g"
+find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  "s|</client>|<caConfig>/etc/pki/tls/certs/ca-bundle.crt</caConfig></client>|g"
 
 find /etc/clickhouse-server/ -name 'users.xml' | xargs perl -pi -e  "s|<password></password>|<password>${11}</password>|g"
 sudo sed -i "9a <max_threads>${12}</max_threads>" /etc/clickhouse-server/users.xml
