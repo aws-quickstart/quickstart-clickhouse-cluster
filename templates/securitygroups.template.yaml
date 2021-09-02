@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: (SO8019) - This template is used for setting up Security Groups. (qs-1s4ldl6ta)
+Description: This template is used for setting up Security Groups. (qs-1s4ldl6ta)
 
 Metadata:
   LICENSE: Apache License Version 2.0
