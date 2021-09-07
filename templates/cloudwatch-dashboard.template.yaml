@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: (SO8019) - This template is used for setting up Clickhouse CloudWatch Dashboard. (qs-1s4ldl6sa)
+Description: This template is used for setting up Clickhouse CloudWatch Dashboard. (qs-1s4ldl6sa)
 
 Metadata:
   LICENSE: Apache License Version 2.0
