@@ -187,9 +187,9 @@ image::../images/secretsmanager.png[console,width=90%,height=90%]
 * Deployment script installation log used to troubleshoot error messages: `/home/ec2-user/clickhouse-client-install.log`
 * Grafana web console: `/etc/grafana`
 
-==== Zookeeper server nodes
+==== ZooKeeper server nodes
 
-* Apache Zookeeper installation directory: `/usr/local/apache-zookeeper-3.5.9-bin/`
+* Apache ZooKeeper installation directory: `/usr/local/apache-zookeeper-3.5.9-bin/`
 * Deployment script installation logs: `/home/ec2-user/zk.log`
 
 

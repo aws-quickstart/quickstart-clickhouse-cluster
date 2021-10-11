@@ -29,7 +29,7 @@ Metadata:
       - BastionInstanceType
       - NumBastionHosts
     - Label:
-        default: Zookeeper configuration
+        default: ZooKeeper configuration
       Parameters:
       - ZookeeperInstanceType
       - ZookeeperVersion
@@ -98,19 +98,19 @@ Metadata:
       NumBastionHosts:
         default: Number of bastion hosts
       ZookeeperInstanceType:
-        default: Zookeeper instance type
+        default: ZooKeeper instance type
       ZookeeperVersion:
-        default: Zookeeper version
+        default: ZooKeeper version
       ZookeeperNodeCount:
-        default: Number of Zookeeper nodes
+        default: Number of ZooKeeper nodes
       ZookeeperDeviceName:
-        default: Device name of Zookeeper nodes
+        default: Device name of ZooKeeper nodes
       ZookeeperVolumeType:
-        default: Volume type of Zookeeper nodes
+        default: Volume type of ZooKeeper nodes
       ZookeeperVolumeSize:
-        default: Volume size of Zookeeper nodes
+        default: Volume size of ZooKeeper nodes
       ZookeeperIops:
-        default: IOPS of Zookeeper nodes
+        default: IOPS of ZooKeeper nodes
       SingleAvailableZone:
         default: Deploy in single or two available zones
       ClickHouseInstanceType:
@@ -254,7 +254,7 @@ Parameters:
     Description: Enter the number of bastion hosts to create.
     Type: String
   ZookeeperInstanceType: 
-    Description: Amazon EC2 instance type for the Zookeeper nodes.
+    Description: Amazon EC2 instance type for the ZooKeeper nodes.
     Type: String
     Default: m5.large
     AllowedValues: 
@@ -293,12 +293,12 @@ Parameters:
     - '3.6.3'
     - '3.7.0'
     Default: '3.5.9'
-    Description: Zookeeper version (3.5.9).
+    Description: ZooKeeper version (3.5.9).
     Type: String
   ZookeeperNodeCount:
     Default: 3
     Type: Number
-    Description: Number of Zookeeper nodes.
+    Description: Number of ZooKeeper nodes.
     AllowedValues: 
       - 3
   ZookeeperDeviceName:
