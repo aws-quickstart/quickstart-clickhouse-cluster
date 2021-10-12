@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: (SO8019) - Deploy ClickHouse on Amazon Web Services in an existing VPC. ()
+Description: (SO8019) - Deploy ClickHouse on Amazon Web Services in an existing VPC. (qs-xxxxxxxxx)
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
