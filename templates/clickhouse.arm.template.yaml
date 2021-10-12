@@ -319,7 +319,7 @@ Parameters:
     - 'small'
     - 'medium'
     Default: 'small'
-    Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
+    Description: AWS CloudFormation creates a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
   ZookeeperPrivateIp1:
     Type: String
