@@ -2,6 +2,6 @@
 // Identify your target audience and explain how/why they would use this Quick Start.
 //Avoid borrowing text from third-party websites (copying text from AWS service documentation is fine). Also, avoid marketing-speak, focusing instead on the technical aspect.
 
-This Quick Start guide provides instructions for deploying a https://clickhouse.tech/[ClickHouse cluster^] on the AWS Cloud. ClickHouse is an open-source, column-oriented database management system (DBMS), which can be used for online analytical processing of queries (OLAP). During the deployment, customers can configure the AWS CloudFormation templates to define the desired cluster nodes and settings.
+This Quick Start guide provides instructions for deploying a https://clickhouse.com/docs/en/[ClickHouse cluster^] on the AWS Cloud. ClickHouse is an open-source, column-oriented database management system (DBMS), which can be used for online analytical processing of queries (OLAP).
 
-This Quick Start is for users who ... _(complete this sentence)_
+This Quick Start is for customers who want to process anaytical queries using a DBMS, such as MySQL, PostgreSQL, and Oracle Database. During the deployment, customers can configure the AWS CloudFormation templates to define the desired cluster nodes and settings.
