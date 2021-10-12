@@ -32,7 +32,7 @@ ssh -i "clickhouse.pem" ec2-user@ec2-11-11-11-11.compute-1.amazonaws.com
 [start=4]
 . Obtain the IP address from the Amazon EC2 console.
 .. Navigate to the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
-.. On the *Instances* page, select the checkbox for your instance. In the *Description* tab, note the *Private IPs*, as shown in <<IPaddress>>.
+.. On the *Instances* page, select the check box for your instance. In the *Description* tab, note the *Private IPs*, as shown in <<IPaddress>>.
 
 [#IPaddress]
 [link=images/ec2.png]
@@ -61,7 +61,7 @@ Run "sudo yum update" to apply all updates.
 +
 
 [start=6]
-. To query, manage, and diagnose issues, use the https://clickhouse.tech/docs/en/interfaces/cli/[ClickHouse command-line client^].
+. To query, manage, and diagnose issues, use the https://clickhouse.tech/docs/en/interfaces/cli/[ClickHouse command line client^].
 
 === Viewing the Grafana web console in a browser
 
@@ -79,7 +79,7 @@ For example:
 +
 `ssh -qTfnN -D 40011  -i "clickhouse.pem" \ec2-user@ec2-54-223-36-247.cn-north-1.compute.amazonaws.com.cn`
 
-. Set up a proxy manager, such as Proxy SwitchyOmega, in your browser. There are many proxy manager plug-ins available. The following example uses https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif[Proxy SwitchyOmega^].
+. Set up a proxy manager, such as Proxy SwitchyOmega, in your browser. There are many proxy manager plugins available. The following example uses https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif[Proxy SwitchyOmega^].
 ** https://microsoftedge.microsoft.com/addons/detail/proxy-switchyomega/fdbloeknjpnloaggplaobopplkdhnikc?hl=en-US[Install Proxy SwitchyOmega for Microsoft Edge^]
 ** https://addons.mozilla.org/en-US/firefox/addon/switchyomega/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search[[Install Proxy SwitchyOmega for Mozilla Firefox^]
 ** https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif?hl=en-US[[Install Proxy SwitchyOmega for Google Chrome^]]
@@ -173,31 +173,31 @@ image::../images/cloudformation_outputs.png[console,width=90%,height=90%]
 .AWS Secrets Manager console
 image::../images/secretsmanager.png[console,width=90%,height=90%]
 
-=== Resources
+== Resources
 
-==== ClickHouse server nodes
+=== ClickHouse server nodes
 
 * ClickHouse server installation directory: `/etc/clickhouse-server`
 * ClickHouse server data directory in local file storage: `/home/clickhouse/data`
-* ClickHouse server data directory in S3 bucket name like: `clickhouse-data-vpcid`
-* Deployment script installation log used to troubleshoot error messages: `/home/ec2-user/ch-install.log`
+* ClickHouse server data directory in S3 bucket: `clickhouse-data-vpcid`
+* Deployment script installation log to troubleshoot error messages: `/home/ec2-user/ch-install.log`
 
-==== ClickHouse client nodes
+=== ClickHouse client nodes
+
 * ClickHouse client installation directory: `/etc/clickhouse-client`
-* Deployment script installation log used to troubleshoot error messages: `/home/ec2-user/clickhouse-client-install.log`
+* Deployment script installation log to troubleshoot error messages: `/home/ec2-user/clickhouse-client-install.log`
 * Grafana web console: `/etc/grafana`
 
-==== ZooKeeper server nodes
+=== ZooKeeper server nodes
 
 * Apache ZooKeeper installation directory: `/usr/local/apache-zookeeper-3.5.9-bin/`
 * Deployment script installation logs: `/home/ec2-user/zk.log`
 
 
-== Best practices for using {partner-product-short-name} on AWS
+== {partner-product-short-name} resources
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
 
-* https://clickhouse.tech/blog/en/2021/reading-from-external-memory/[A journey to io_uring, AIO and modern storage devices]
-* https://habr.com/en/company/yandex/blog/457612/[How to speed up LZ4 decompression in ClickHouse]
-* https://clickhouse.tech/blog/en/2021/fuzzing-clickhouse/[Fuzzing ClickHouse]
-* https://habr.com/en/company/yandex/blog/485096/[Five Methods For Database Obfuscation]
-* https://aws.amazon.com/cn/blogs/china/explore-three-ways-to-combine-clickhouse-and-amazon-s3/[Explore three ways to combine ClickHouse and Amazon s3]
+* https://clickhouse.tech/blog/en/2021/reading-from-external-memory/[A journey to io_uring, AIO and modern storage devices^]
+* https://habr.com/en/company/yandex/blog/457612/[How to speed up LZ4 decompression in ClickHouse?^]
+* https://clickhouse.tech/blog/en/2021/fuzzing-clickhouse/[Fuzzing ClickHouse^]
+* https://habr.com/en/company/yandex/blog/485096/[Five Methods For Database Obfuscation^]
