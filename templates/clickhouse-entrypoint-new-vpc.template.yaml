@@ -197,7 +197,7 @@ Parameters:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
     Description: Allowed CIDR block for external SSH access to the bastions.
-    Default: 0.0.0.0/0
+    Default: 10.0.0.0/16
     Type: String
   KeyPairName:
     Description: Public/private key pairs allow you to securely connect to your instance after it launches.
@@ -207,7 +207,7 @@ Parameters:
     ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
     Description: 'The CIDR IP range that is permitted to access ClickHouse instances.
       Note: a value of 0.0.0.0/0 will allow access from ANY ip address.'
-    Default: 0.0.0.0/0
+    Default: 10.0.0.0/16
     Type: String
   BastionAMIOS:
     AllowedValues:
@@ -603,21 +603,13 @@ Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: 
-        Fn::Sub:
-            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
-            - S3Region: !If 
-                - UsingDefaultBucket
-                - !Ref 'AWS::Region'
-                - !Ref QSS3BucketRegion
-              S3Bucket: !If 
-                - UsingDefaultBucket
-                - !Sub '${QSS3BucketName}-${AWS::Region}'
-                - !Ref QSS3BucketName
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         BastionAMIOS: !Ref BastionAMIOS
         BastionInstanceType: !Ref BastionInstanceType
-        # For PVRE compliance
         OSImageOverride: !Ref LatestAmiId
         NumBastionHosts: !Ref NumBastionHosts
         KeyPairName: !Ref KeyPairName
@@ -626,6 +618,9 @@ Resources:
         PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !GetAtt VPCStack.Outputs.VPCID
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+        QSS3KeyPrefix: !Sub '${QSS3KeyPrefix}submodules/quickstart-linux-bastion/'
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -1194,25 +1189,3 @@ Outputs:
     Value: !If [IsChinaRegion, 
       !Join ['', [!Sub 'https://console.amazonaws.cn/secretsmanager/home?region=${AWS::Region}#!/secret?name=', !Ref ClickHouseSecret]], 
       !Join ['', [!Sub 'https://console.aws.amazon.com/secretsmanager/home?region=${AWS::Region}#!/secret?name=', !Ref ClickHouseSecret]]]
-Rules:
-  RegionValid:
-    RuleCondition: !Or 
-      - !Equals 
-        - !Ref 'AWS::Region'
-        - cn-north-1
-      - !Equals 
-        - !Ref 'AWS::Region'
-        - cn-northwest-1
-    Assertions:
-      - Assert: 
-          'Fn::Contains':
-            - - 'cn-north-1'
-              - 'cn-northwest-1'
-            - !Ref QSS3BucketRegion
-        AssertDescription: ''
-      - Assert: 
-          'Fn::Contains':
-            - - 'aws-cn-quickstart'
-              - 'aws-cn-quickstart-wqqiao'
-            - !Ref QSS3BucketName
-        AssertDescription: ''

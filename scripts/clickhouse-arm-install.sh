@@ -61,7 +61,9 @@ if [ ${20} = github ]; then
         git clone --recursive https://gitee.com/mirrors/clickhouse.git
         mv clickhouse ClickHouse
     else
-        git clone --recursive https://github.com/ClickHouse/ClickHouse.git
+        #git clone --recursive https://github.com/ClickHouse/ClickHouse.git
+        wget https://github.com/ClickHouse/ClickHouse/releases/download/v21.8.7.22-lts/ClickHouse_sources_with_submodules.tar.gz
+        tar -xvf ClickHouse_sources_with_submodules.tar.gz
     fi
 else
     aws s3 cp ${20} ./ --region ${4}
@@ -75,8 +77,10 @@ ninja -C build-arm64 clickhouse > ninja.out
 
 
 cd ..
-wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-$1.tgz
-wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-$1.tgz
+#wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-$1.tgz
+#wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-$1.tgz
+wget https://repo.yandex.ru/clickhouse/tgz/lts/clickhouse-server-$1.tgz
+wget https://repo.yandex.ru/clickhouse/tgz/lts/clickhouse-client-$1.tgz
 tar -xzvf clickhouse-client-$1.tgz
 tar -xzvf clickhouse-server-$1.tgz
 find /var/lib/clickhouse/clickhouse-server-$1/install/ -name 'doinst.sh' | xargs perl -pi -e  "s|done|done;rm -f /usr/bin/clickhouse-*;cp -r -f /var/lib/clickhouse/ClickHouse/build-arm64/programs/clickhouse-* /usr/bin/|g"
@@ -344,6 +348,9 @@ if [ $1 = 21.4.5.46 ]; then
 elif [ $1 = 21.5.5.12 ]; then
     echo "Update the config.xml of $1"
     sed -i '520, 630d' /etc/clickhouse-server/config.xml
+elif [ $1 = 21.8.7.22 ]; then
+    echo "Update the config.xml of $1"
+    sed -i '590, 695d' /etc/clickhouse-server/config.xml
 fi
 
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  's|<!--</remote_url_allow_hosts>-->|<!--</remote_url_allow_hosts>--><include_from>/etc/clickhouse-server/metrika.xml</include_from><remote_servers incl="clickhouse_remote_servers" /><zookeeper incl="zookeeper-servers" optional="true" />|g'
