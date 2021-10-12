@@ -1,19 +1,14 @@
-// Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
-//Should any sections not be applicable, remove them
+=== Log in to a ClickHouse server node
 
-=== Logging into a ClickHouse server node
-
-//TODO The second sentence ("The key used ...") doesn't make sense.
-. Locate your private key file. The key used to launch such as clickhouse.pem. Run the following command to ensure your key is not publicly viewable.
+. Locate your private key, which is used to launch `clickhouse.pem`. Run the following command to ensure your key is not publicly viewable:
 
 [source,bash]
 --
 chmod 400 ./clickhouse.pem
 --
 
-//TODO From local what ... ?
 [start=2]
-. Upload the PEM key pair from local to the bastion host. For example:
+. Upload the PEM key pair to the bastion host:
 
 [source,bash]
 --
@@ -21,7 +16,7 @@ scp -i "clickhouse.pem" ./clickhouse.pem ec2-user@ec2-11-11-11-11.compute-1.amaz
 --
 
 [start=3]
-. Sign in to the bastion host.
+. Sign in to the bastion host:
 
 [source,bash]
 --
@@ -39,9 +34,8 @@ ssh -i "clickhouse.pem" ec2-user@ec2-11-11-11-11.compute-1.amazonaws.com
 .Private IP address for Amazon EC2 instance
 image::../images/ec2.png[ClickHouseClientAddress,width=75%,height=75%]
 
-//TODO The following sentence doesn't make sense.
 [start=5]
-. From the bastion host, ensure the PEM key pair file in the current bastion host directory and log into the client node with the IP address. For example:
+. From the bastion host, ensure that the PEM key pair file is in the bastion host directory, and then log in to the client node:
 
 +
 [source,bash]
@@ -63,12 +57,12 @@ Run "sudo yum update" to apply all updates.
 [start=6]
 . To query, manage, and diagnose issues, use the https://clickhouse.tech/docs/en/interfaces/cli/[ClickHouse command line client^].
 
-=== Viewing the Grafana web console in a browser
+=== Grafana web console
 
-By default, the deployment installs the Grafana web console on the ClickHouse client host in the private subnets. The subnets cannot be accessed directly through a browser. To access port `3000` of the private IP address of the Grafana server, configure an SSH (Secure Shell) connection using the SSH tunnel of the bastion host. Then use the SSH tunnel to access the web console. 
+By default, the deployment installs the Grafana web console on the ClickHouse client host in the private subnets. The subnets cannot be accessed directly through a browser. To access port `3000` of the private IP address of the Grafana server, configure an SSH (Secure Shell) connection using the tunnel of the bastion host. Then use the SSH tunnel to access the web console. 
 
 [#step1]
-. Use the following command to establish a connection with the bastion host using SSH. Replace `port number`, `key pair.pem`, `user name`, and `host name` with your parameters.
+. Connect to the bastion host using SSH. Replace `port number`, `key pair.pem`, `user name`, and `host name` with your parameters:
 
 +
 `ssh -qTfnN -D _port number_ -i "_key pair.pem_" _user name_@_host name_`
@@ -118,12 +112,12 @@ image::../images/switchyOmega2.png[SwitchyOmega,width=50%,height=50%]
 [#proxyserverinfo]
 [link=images/SwitchyOmega3.png]
 .Proxy servers.
-image::../images/SwitchyOmega3.png[SwitchyOmega,width=50%,height=50%]
+image::../images/switchyOmega3.png[SwitchyOmega,width=50%,height=50%]
 
 +
 [start=5]
 .. Choose *Apply Changes*. 
-.. Access SwitchyOmega through the extension icon in your browser. Choose your created profile in the proxy list. The browser sends all traffic through port 40011 to the bastion host.
+.. Access SwitchyOmega through the extension in your browser. Choose your created profile in the proxy list. The browser sends all traffic through port `40011` to the bastion host.
 
 +
 
@@ -143,7 +137,7 @@ image::../images/switchyOmega4.png[SwitchyOmega,width=50%,height=50%]
 [#ec2console]
 [link=images/ec2.png]
 .Private IP address of the ClickHouse client host in the Amazon EC2 console.
-image::../images/ec2.png[ec2,width=90%,height=90%]
+image::../images/ec2.png[ec2,width=50%,height=50%]
 
 
 +
@@ -151,17 +145,17 @@ image::../images/ec2.png[ec2,width=90%,height=90%]
 [#webconsole]
 [link=images/GrafanaConsole.png]
 .Grafana web console
-image::../images/GrafanaConsole.png[console,width=90%,height=90%]
+image::../images/GrafanaConsole.png[console,width=50%,height=50%]
 
 [start=4]
-. The user name is `admin`. To retrieve the password of the Grafana web console, navigate to the AWS CloudFormation stack console, and choose *Outputs*. Search for the `DBPassword` parameter.
+. The user name is `admin`. To retrieve the password for the Grafana web console, navigate to the AWS CloudFormation console, choose *Outputs*, and search for the `DBPassword` parameter.
 
 +
 
 [#cloudformationconsole]
 [link=images/cloudformation_outputs.png]
 .AWS CloudFormation outputs
-image::../images/cloudformation_outputs.png[console,width=90%,height=90%]
+image::../images/cloudformation_outputs.png[console,width=50%,height=50%]
 
 [start=5]
 . To find the password, navigate to the AWS Secrets Manager console, and choose *Retrieve secret value*.
@@ -171,7 +165,7 @@ image::../images/cloudformation_outputs.png[console,width=90%,height=90%]
 [#secretsmanagerconsole]
 [link=images/secretsmanager.png]
 .AWS Secrets Manager console
-image::../images/secretsmanager.png[console,width=90%,height=90%]
+image::../images/secretsmanager.png[console,width=50%,height=50%]
 
 == Resources
 
