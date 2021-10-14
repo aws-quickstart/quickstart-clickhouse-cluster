@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: (SO8019) - This stack deploys NLB for ClickHouse cluster. (qs-1s4ldl6sl)
+Description: This stack deploys NLB for ClickHouse cluster. (qs-1s4ldl6sl)
 
 Metadata:
   LICENSE: Apache License Version 2.0
