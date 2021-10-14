@@ -1,7 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: '(SO8019) - Deploy ClickHouse on Amazon Web Services in a new VPC. (qs-1s4ldl6pg)'
+Description: '(SO8019) Deploy ClickHouse on Amazon Web Services in a new VPC. (qs-1s4ldl6pg)'
 Metadata:
   LICENSE: Apache License Version 2.0
+  QuickStartDocumentation:
+    EntrypointName: "Parameters for deploying into an new VPC"
+    Order: "1"
   AWS::CloudFormation::Interface:
     ParameterGroups:
     - Label:
@@ -26,7 +29,7 @@ Metadata:
       - BastionInstanceType
       - NumBastionHosts
     - Label:
-        default: Zookeeper configuration
+        default: ZooKeeper configuration
       Parameters:
       - ZookeeperInstanceType
       - ZookeeperVersion
@@ -64,7 +67,7 @@ Metadata:
         - GrafanaVersion
         - AlarmEmail
     - Label:
-        default: Amazon Web Services Quick Start configuration
+        default: Quick Start configuration
       Parameters:
       - QSS3BucketName
       - QSS3BucketRegion
@@ -87,7 +90,7 @@ Metadata:
       AccessCIDR:
         default: Permitted IP range
       KeyPairName:
-        default: Key pair name
+        default: Key-pair name
       BastionAMIOS:
         default: Bastion AMI OS
       BastionInstanceType:
@@ -95,21 +98,21 @@ Metadata:
       NumBastionHosts:
         default: Number of bastion hosts
       ZookeeperInstanceType:
-        default: Zookeeper instance type
+        default: ZooKeeper instance type
       ZookeeperVersion:
-        default: Zookeeper version
+        default: ZooKeeper version
       ZookeeperNodeCount:
-        default: Number of Zookeeper nodes
+        default: Number of ZooKeeper nodes
       ZookeeperDeviceName:
-        default: Device name of Zookeeper nodes
+        default: Device name of ZooKeeper nodes
       ZookeeperVolumeType:
-        default: Volume type of Zookeeper nodes
+        default: Volume type of ZooKeeper nodes
       ZookeeperVolumeSize:
-        default: Volume size of Zookeeper nodes
+        default: Volume size of ZooKeeper nodes
       ZookeeperIops:
-        default: IOPS of Zookeeper nodes
+        default: IOPS of ZooKeeper nodes
       SingleAvailableZone:
-        default: Deploy in single or two available zones
+        default: Deploy in one or two available zones
       ClickHouseInstanceType:
         default: ClickHouse instance type
       ClickHouseVersion:
@@ -133,80 +136,78 @@ Metadata:
       LoadBalancing:
         default: Load balancing
       MaxDataPartSize:
-        default: Max data part size
+        default: Maximum data part size
       MoveFactor:
         default: Move factor
       MaxInsertThreads:
-        default: Max insert threads
+        default: Maximum insert threads
       MaxMemoryUsage:
-        default: Max memory usage
+        default: Maximum memory usage
       MaxThreads:
-        default: Max threads
+        default: Maximum threads
       DemoDataSize:
-        default: Demo data size
+        default: Demonstration data size
       Port:
         default: ClickHouse service port
       GrafanaVersion:
         default: Grafana version
       QSS3BucketName:
-        default: Amazon Web Services Quick Start S3 bucket name
+        default: Quick Start S3 bucket name
       QSS3BucketRegion:
-        default: Quick Start S3 bucket region
+        default: Quick Start S3 bucket Region
       QSS3KeyPrefix:
-        default: Amazon Web Services Quick Start S3 key prefix
+        default: Quick Start S3 key prefix
       AlarmEmail:
         default: Alarm email address
       LatestAmiId:
         default: Latest Amazon Linux2 AMI ID
 Parameters:
   AvailabilityZones:
-    Description: 'List of Availability Zones to use for the subnets in the VPC. Note:
-      The logical order is preserved ( More AZ will improve the availability of the system, less AZ will reduce the cost of data traffic between AZ ).'
+    Description: 'List of Availability Zones (AZs) to use for the VPC subnets. More AZs improve the availability of the system, and fewer AZs reduce the cost of data traffic between AZs).'
     Type: List<AWS::EC2::AvailabilityZone::Name>
   PrivateSubnet1CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
     Default: 10.0.0.0/19
-    Description: 'CIDR block for private subnet 1 located in Availability Zone 1.'
+    Description: 'CIDR block for private subnet 1, located in Availability Zone 1.'
     Type: String
   PrivateSubnet2CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
     Default: 10.0.32.0/19
-    Description: '(Please ignore if you choose 1 AZs)CIDR block for private subnet 2 located in Availability Zone 2.'
+    Description: '(Ignore if you chose one Availability Zone) CIDR block for private subnet 2, located in Availability Zone 2.'
     Type: String
   PublicSubnet1CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
     Default: 10.0.128.0/20
-    Description: 'CIDR block for the public DMZ subnet 1 located in Availability Zone 1.'
+    Description: 'CIDR block for public DMZ subnet 1, located in Availability Zone 1.'
     Type: String
   PublicSubnet2CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
     Default: 10.0.144.0/20
-    Description: (Please ignore if you choose 1 AZs)CIDR block for the public DMZ subnet 2 located in Availability Zone 2.
+    Description: (Ignore if you chose one Availability Zone) CIDR block for public DMZ subnet 2, located in Availability Zone 2.
     Type: String
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
     Default: 10.0.0.0/16
     Description: CIDR block for the VPC.
     Type: String
   RemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
-    Description: Allowed CIDR block for external SSH access to the bastions.
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x.
+    Description: Allowed CIDR block for external Secure Shell (SSH) access to bastion hosts.
     Default: 10.0.0.0/16
     Type: String
   KeyPairName:
-    Description: Public/private key pairs allow you to securely connect to your instance after it launches.
+    Description: Key pairs allow you to connect to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName
   AccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
-    Description: 'The CIDR IP range that is permitted to access ClickHouse instances.
-      Note: a value of 0.0.0.0/0 will allow access from ANY ip address.'
+    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
+    Description: 'CIDR IP range permitted to access ClickHouse instances. A value of 0.0.0.0/0 allows access from any IP address.'
     Default: 10.0.0.0/16
     Type: String
   BastionAMIOS:
@@ -216,7 +217,7 @@ Parameters:
       - Ubuntu-Server-20.04-LTS-HVM
       - SUSE-SLES-15-HVM
     Default: Amazon-Linux2-HVM
-    Description: The Linux distribution for the AMI to be used for the bastion instances.
+    Description: Linux distribution for the AMI to be used for bastion instances.
     Type: String
   BastionInstanceType:
     AllowedValues:
@@ -239,7 +240,7 @@ Parameters:
       - m4.2xlarge
       - m4.4xlarge
     Default: t2.micro
-    Description: Amazon EC2 instance type for the bastion instances.
+    Description: Amazon EC2 instance type for bastion instances.
     Type: String
   NumBastionHosts: 
     AllowedValues: 
@@ -251,7 +252,7 @@ Parameters:
     Description: Enter the number of bastion hosts to create.
     Type: String
   ZookeeperInstanceType: 
-    Description: Amazon EC2 instance type for the Zookeeper nodes.
+    Description: Amazon EC2 instance type for the ZooKeeper nodes.
     Type: String
     Default: m5.large
     AllowedValues: 
@@ -290,25 +291,25 @@ Parameters:
     - '3.6.3'
     - '3.7.0'
     Default: '3.5.9'
-    Description: Zookeeper version (3.5.9).
+    Description: ZooKeeper version (3.5.9).
     Type: String
   ZookeeperNodeCount:
     Default: 3
     Type: Number
-    Description: Number of Zookeeper nodes.
+    Description: Number of ZooKeeper nodes.
     AllowedValues: 
       - 3
   ZookeeperDeviceName:
-    Description: The device name (for example, /dev/sdh or xvdh).
+    Description: Device name (e.g., /dev/sdh or xvdh).
     Type: String
     Default: /dev/xvdh
   ZookeeperVolumeSize: 
     Type: String
-    Description: EBS volume size (data) to be attached to node in GBs.
+    Description: Amazon EBS volume size (data) in gigabytes to be attached to node.
     Default: 500
   ZookeeperVolumeType: 
     Type: String
-    Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
+    Description: Amazon EBS data-volume type (e.g., gp2, gp3, and st1) to attach to node. One volume for data storage is mounted automatically by the AWS CloudFormation stack.
     Default: gp2
     AllowedValues:
       - gp2
@@ -317,17 +318,17 @@ Parameters:
       - io1
   ZookeeperIops: 
     Type: String
-    Description: IOPS of EBS volume when io1 type is chosen. Otherwise ignored.
+    Description: IOPS of Amazon EBS volume if you chose io1 type. Otherwise it is ignored.
     Default: 1000
   SingleAvailableZone:
-    Description: ClickHouse cluster in one or two available zones.
+    Description: ClickHouse cluster in one or two Availability Zones.
     Type: String
     Default: 2az
     AllowedValues:
       - 1az
       - 2az
   ClickHouseInstanceType: 
-    Description: Amazon EC2 instance type for the ClickHouse nodes.
+    Description: Amazon EC2 instance type for ClickHouse nodes.
     Type: String
     Default: m5.xlarge
     AllowedValues: 
@@ -373,7 +374,7 @@ Parameters:
     Type: String
   ClickHouseTimezone:
     Default: 'Asia/Shanghai' #America/Los_Angeles
-    Description: 'ClickHouse time zone.'
+    Description: ClickHouse time zone.
     Type: String
   ClickHouseNodeCount:
     Type: String
@@ -385,22 +386,22 @@ Parameters:
       - 6
       - 8
   Architecture:
-    Description:  Amazon graviton2-based EC2 instances provide up to 40 percent better price/performance over comparable current generation x86-based instances.
+    Description: Amazon EC2 graviton2–based instances provide up to 40 percent better price and performance over comparable x86-based instances.
     Type: String
     Default: X86
     AllowedValues: 
       - X86
   ClickHouseDeviceName:
-    Description: The device name (for example, /dev/sdh or xvdh).
+    Description: Device name (e.g., /dev/sdh or xvdh).
     Type: String
     Default: /dev/xvdh
   ClickHouseVolumeSize: 
     Type: String
-    Description: EBS volume size (data) to be attached to node in GBs.
+    Description: Amazon EBS volume size (data) in gigabytes to attach to node.
     Default: 500
   ClickHouseVolumeType: 
     Type: String
-    Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
+    Description: Amazon EBS data-volume type (e.g., gp2, gp3, and st1) to attach to node. One volume for data storage is mounted automatically by the AWS CloudFormation stack.
     Default: gp2
     AllowedValues:
       - gp2
@@ -409,7 +410,7 @@ Parameters:
       - io1
   ClickHouseIops: 
     Type: String
-    Description: IOPS of EBS volume when io1 type is chosen. Otherwise ignored.
+    Description: IOPS of Amazon EBS volume if you chose io1 type. Otherwise it is ignored.
     Default: 1000
   MaxThreads:
     AllowedValues:
@@ -419,7 +420,7 @@ Parameters:
     - '16'
     - '32'
     Default: '8'
-    Description: The max_threads for ClickHouse default users.xml. Recommend the number of cores using the instance.
+    Description: Maximum threads for ClickHouse default users. Use the number of cores for the instance.
     Type: String
   MaxMemoryUsage:
     AllowedValues:
@@ -428,7 +429,7 @@ Parameters:
     - '42949672960'
     - '107374182400'
     Default: '10737418240'
-    Description: The max_memory_usage for ClickHouse default users.xml. Unit is byte, for example 21474836480=20g. In a single ClickHouse service process, the maximum amount of memory used by running a query is limited, and the default value is 10g.
+    Description: Maximum memory usage in bytes for ClickHouse default users (e.g., 21474836480=20g). In a single ClickHouse service process, the maximum amount of memory used by a running query is limited. The default value is 10g.
     Type: String
   MaxInsertThreads:
     AllowedValues:
@@ -437,7 +438,7 @@ Parameters:
     - '8'
     - '16'
     Default: '4'
-    Description: 'The max_insert_threads for ClickHouse default users.xml. The maximum number of threads to start the INSERT SELECT query.'
+    Description: Maxiumum inserted threads for ClickHouse default users. This is the maximum number of threads that run the INSERT SELECT query.
     Type: String
   DistributedProductMode:
     AllowedValues:
@@ -446,7 +447,7 @@ Parameters:
     - 'global'
     - 'allow'
     Default: 'global'
-    Description: The distributed_product_mode for ClickHouse default users.xml // ClickHouse applies this setting when the query contains the product of distributed tables, i.e. when the query for a distributed table contains a non-GLOBAL subquery for the distributed table.
+    Description: Distributed product mode for ClickHouse default users. ClickHouse applies this setting when the query contains the product of distributed tables. That is, it applies when the query for a distributed table contains a nonglobal subquery for the distributed table.
     Type: String
   LoadBalancing:
     AllowedValues:
@@ -455,7 +456,7 @@ Parameters:
     - 'in_order'
     - 'first_or_random'
     Default: 'nearest_hostname'
-    Description: The load_balancing for ClickHouse default users.xml // Specifies the algorithm of replicas selection that is used for distributed query processing.
+    Description: Load balancing for ClickHouse default users. This specifies the algorithm of replicas used for distributed query processing.
     Type: String
   MaxDataPartSize:
     AllowedValues:
@@ -463,7 +464,7 @@ Parameters:
     - '5368709120'
     - '10737418240'
     Default: '1073741824'
-    Description: The max_data_part_size_bytes for ClickHouse default storage.xml //  Unit is byte, the maximum size of a part that can be stored on any of the volume’s disks.
+    Description: The maximum data-part size in bytes for ClickHouse default storage. The maximum part size can be stored on any disk volume.
     Type: String
   MoveFactor:
     AllowedValues:
@@ -477,7 +478,7 @@ Parameters:
     - 0.8
     - 0.9
     Default: 0.3
-    Description: In case of cold option a data can be moved to S3 if local disk free size will be smaller than move_factor * disk_size.
+    Description: If you use the cold option, you can move data to Amazon S3 if the local disk size is smaller than move_factor mulitplied by disk_size.
     Type: String
   GrafanaVersion:
       Default: 8.0.1-1
@@ -495,7 +496,7 @@ Parameters:
     - 'medium'
     - 'none'
     Default: 'small'
-    Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
+    Description: "AWS CloudFormation creates a demontration table (OnTime dataset) for you and loads data. You can choose the size of demonstration data (e.g., 'small'100m / / -'medium'3g / / -'large'15g)."
     Type: String
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -522,14 +523,14 @@ Parameters:
       hosted. If you use your own bucket, you must specify this value.
     Type: String
   LatestAmiId:
-    Description: Reference the latest Amazon Linux2 AMI in a CloudFormation template.
+    Description: Reference the latest Amazon Linux2 AMI in an AWS CloudFormation template.
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
   AlarmEmail: 
     #AllowedPattern: ^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$
     AllowedPattern: \w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*
     ConstraintDescription: Incorrect email address.
-    Description: "Email address to notify of operational issues."
+    Description: "Email address to send operational issues to."
     Type: "String"
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']

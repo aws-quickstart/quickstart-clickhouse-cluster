@@ -128,11 +128,11 @@ Metadata:
       GrafanaVersion:
         default: Grafana version
       ZookeeperPrivateIp1:
-        default: Zookeeper private IP 1
+        default: ZooKeeper private IP 1
       ZookeeperPrivateIp2:
-        default: Zookeeper private IP 2
+        default: ZooKeeper private IP 2
       ZookeeperPrivateIp3:
-        default: Zookeeper private IP 3
+        default: ZooKeeper private IP 3
       CloudWatchAgentURL:
         default: CloudWatch agent URL
       InstanceRoleArn:
@@ -319,17 +319,17 @@ Parameters:
     - 'small'
     - 'medium'
     Default: 'small'
-    Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
+    Description: AWS CloudFormation creates a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
   ZookeeperPrivateIp1:
     Type: String
-    Description: Zookeeper private IP 1.
+    Description: ZooKeeper private IP 1.
   ZookeeperPrivateIp2:
     Type: String
-    Description: Zookeeper private IP 2.
+    Description: ZooKeeper private IP 2.
   ZookeeperPrivateIp3:
     Type: String
-    Description: Zookeeper private IP 3.
+    Description: ZooKeeper private IP 3.
   CloudWatchAgentURL:
     Description: For each download link, you can download and install the CloudWatch agent using the command line.
     Type: String

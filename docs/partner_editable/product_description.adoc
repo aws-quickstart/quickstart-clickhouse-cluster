@@ -2,4 +2,10 @@
 // Briefly describe the software. Use consistent and clear branding. 
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
-This Quick Start sets up an Amazon Web Services (AWS) architecture that deploys a ClickHouse cluster on AWS. https://clickhouse.tech/[ClickHouse] is one of the most popular open-source column-oriented database management system (DBMS), which can be used for online analytical processing of queries(OLAP). ClickHouse on AWS Quick Start enable customers to deploy ClickHouse cluster in AWS Cloud in minutes. During the launch, customers can configure through CloudFormation template to define the desired cluster nodes and settings. The solution offer options for high availability, and it integrates AWS Services such S3, CloudWatch, etc.
+ClickHouse is an SQL-based DBMS that customers can use to store, retrieve, and update data. Functions of a DBMS include the following:
+
+* User-defined catalog of metadata
+* Transaction support
+* Database recovery
+* Access management
+* Database constraints

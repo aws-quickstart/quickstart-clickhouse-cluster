@@ -126,11 +126,11 @@ Metadata:
       GrafanaVersion:
         default: Grafana version
       ZookeeperPrivateIp1:
-        default: Zookeeper private IP 1
+        default: ZooKeeper private IP 1
       ZookeeperPrivateIp2:
-        default: Zookeeper private IP 2
+        default: ZooKeeper private IP 2
       ZookeeperPrivateIp3:
-        default: Zookeeper private IP 3
+        default: ZooKeeper private IP 3
       CloudWatchAgentURL:
         default: CloudWatch agent URL
       InstanceRoleArn:
@@ -290,7 +290,7 @@ Parameters:
     - '42949672960'
     - '107374182400'
     Default: '10737418240'
-    Description: The max_memory_usage for ClickHouse default users.xml // Unit is byte, for example 21474836480=20g //In a single Clickhouse service process, the maximum amount of memory used by running a query is limited, and the default value is 10g.
+    Description: The max_memory_usage for ClickHouse default users.xml // Unit is byte, for example 21474836480=20g //In a single ClickHouse service process, the maximum amount of memory used by running a query is limited, and the default value is 10g.
     Type: String
   MaxInsertThreads:
     AllowedValues:
@@ -337,16 +337,16 @@ Parameters:
     - 'small'
     - 'medium'
     Default: 'small'
-    Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
+    Description: AWS CloudFormation creates a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
   ZookeeperPrivateIp1:
-    Description: Zookeeper private IP 1.
+    Description: ZooKeeper private IP 1.
     Type: String
   ZookeeperPrivateIp2:
-    Description: Zookeeper private IP 2.
+    Description: ZooKeeper private IP 2.
     Type: String
   ZookeeperPrivateIp3:
-    Description: Zookeeper private IP 3.
+    Description: ZooKeeper private IP 3.
     Type: String
   CloudWatchAgentURL:
     Description: For each download link, you can download and install the CloudWatch agent using the command line.

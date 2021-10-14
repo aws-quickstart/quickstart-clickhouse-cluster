@@ -78,7 +78,7 @@ endif::disable_regions[]
 ifdef::template_deterministic_ec2_instances[]
 ==== EC2 key pairs
 ifndef::production_build[====]
-ifndef::production_build[_This section applies only if the Cloudformation templates include EC2 instances._]
+ifndef::production_build[_This section applies only if the CloudFormation templates include EC2 instances._]
 ifndef::production_build[====]
 Make sure that at least one https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html[Amazon EC2 key pair^] exists in your AWS account in the Region where you plan to deploy the Quick Start. Make note of the key pair name. You need it during deployment. To create a key pair, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html[Amazon EC2 key pairs and Linux instances^].
 

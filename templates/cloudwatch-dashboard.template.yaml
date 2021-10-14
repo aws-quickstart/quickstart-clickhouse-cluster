@@ -1,6 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: This template is used for setting up Clickhouse CloudWatch Dashboard. (qs-1s4ldl6sa)
+
+Description: (SO8019) - This template is used for setting up ClickHouse CloudWatch Dashboard. (qs-1s4ldl6sa)
 
 Metadata:
   LICENSE: Apache License Version 2.0
@@ -58,15 +59,15 @@ Metadata:
       ClickHouseInstanceType:
         default: ClickHouse instance type
       ZookeeperInstanceID1:
-        default: Zookeeper instance ID 1
+        default: ZooKeeper instance ID 1
       ZookeeperInstanceID2:
-        default: Zookeeper instance ID 2
+        default: ZooKeeper instance ID 2
       ZookeeperInstanceID3:
-        default: Zookeeper instance ID 3
+        default: ZooKeeper instance ID 3
       ZookeeperImageId:
-        default: Zookeeper image id
+        default: ZooKeeper image id
       ZookeeperInstanceType:
-        default: Zookeeper instance type
+        default: ZooKeeper instance type
       CpuThreshold:
         default: The threshold of CPU alarm
       MemThreshold:
@@ -117,20 +118,20 @@ Parameters:
     Type: String
     Description: ClickHouse instance type.
   ZookeeperInstanceID1:
-    Description: Zookeeper instance ID.
+    Description: ZooKeeper instance ID.
     Type: String
   ZookeeperInstanceID2:
-    Description: Zookeeper instance ID.
+    Description: ZooKeeper instance ID.
     Type: String
   ZookeeperInstanceID3:
-    Description: Zookeeper instance ID.
+    Description: ZooKeeper instance ID.
     Type: String
   ZookeeperImageId:
-    Description: Zookeeper EC2 image ID.
+    Description: ZooKeeper EC2 image ID.
     Type: String
   ZookeeperInstanceType:
     Type: String
-    Description: Zookeeper instance type.
+    Description: ZooKeeper instance type.
   CpuThreshold:
     Type: String
     Description: The threshold of CPU alarm.
@@ -261,7 +262,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance CPU"
+                "title":"ZooKeeper Cluster EC2 Instance CPU"
               }
             },
             {
@@ -279,7 +280,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance Mem"
+                "title":"ZooKeeper Cluster EC2 Instance Mem"
               }
             },
             {
@@ -300,7 +301,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance DiskIO"
+                "title":"ZooKeeper Cluster EC2 Instance DiskIO"
               }
             },
             {
@@ -321,7 +322,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance Network"
+                "title":"ZooKeeper Cluster EC2 Instance Network"
               }
             },
             {
@@ -345,7 +346,7 @@ Resources:
               "height": 6,
               "properties": {
                   "region": "${AWS::Region}",
-                  "title": "Zookeeper Cluster Application Log",
+                  "title": "ZooKeeper Cluster Application Log",
                   "query": "SOURCE 'ZookeeperLogGroup' | fields @logStream, @message, @timestamp | sort @timestamp desc ",
                   "view": "table"
               }
@@ -466,7 +467,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance CPU"
+                "title":"ZooKeeper Cluster EC2 Instance CPU"
               }
             },
             {
@@ -484,7 +485,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance Mem"
+                "title":"ZooKeeper Cluster EC2 Instance Mem"
               }
             },
             {
@@ -505,7 +506,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance DiskIO"
+                "title":"ZooKeeper Cluster EC2 Instance DiskIO"
               }
             },
             {
@@ -526,7 +527,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance Network"
+                "title":"ZooKeeper Cluster EC2 Instance Network"
               }
             },
             {
@@ -550,7 +551,7 @@ Resources:
               "height": 6,
               "properties": {
                   "region": "${AWS::Region}",
-                  "title": "Zookeeper Cluster Application Log",
+                  "title": "ZooKeeper Cluster Application Log",
                   "query": "SOURCE 'ZookeeperLogGroup' | fields @logStream, @message, @timestamp | sort @timestamp desc ",
                   "view": "table"
               }
@@ -685,7 +686,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance CPU"
+                "title":"ZooKeeper Cluster EC2 Instance CPU"
               }
             },
             {
@@ -703,7 +704,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance Mem"
+                "title":"ZooKeeper Cluster EC2 Instance Mem"
               }
             },
             {
@@ -724,7 +725,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance DiskIO"
+                "title":"ZooKeeper Cluster EC2 Instance DiskIO"
               }
             },
             {
@@ -745,7 +746,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance Network"
+                "title":"ZooKeeper Cluster EC2 Instance Network"
               }
             },
             {
@@ -769,7 +770,7 @@ Resources:
               "height": 6,
               "properties": {
                   "region": "${AWS::Region}",
-                  "title": "Zookeeper Cluster Application Log",
+                  "title": "ZooKeeper Cluster Application Log",
                   "query": "SOURCE 'ZookeeperLogGroup' | fields @logStream, @message, @timestamp | sort @timestamp desc ",
                   "view": "table"
               }
@@ -918,7 +919,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance CPU"
+                "title":"ZooKeeper Cluster EC2 Instance CPU"
               }
             },
             {
@@ -936,7 +937,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance Mem"
+                "title":"ZooKeeper Cluster EC2 Instance Mem"
               }
             },
             {
@@ -957,7 +958,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance DiskIO"
+                "title":"ZooKeeper Cluster EC2 Instance DiskIO"
               }
             },
             {
@@ -978,7 +979,7 @@ Resources:
                 "period":300,
                 "stat":"Average",
                 "region":"${AWS::Region}",
-                "title":"Zookeeper Cluster EC2 Instance Network"
+                "title":"ZooKeeper Cluster EC2 Instance Network"
               }
             },
             {
@@ -1002,7 +1003,7 @@ Resources:
               "height": 6,
               "properties": {
                   "region": "${AWS::Region}",
-                  "title": "Zookeeper Cluster Application Log",
+                  "title": "ZooKeeper Cluster Application Log",
                   "query": "SOURCE 'ZookeeperLogGroup' | fields @logStream, @message, @timestamp | sort @timestamp desc ",
                   "view": "table"
               }

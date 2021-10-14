@@ -15,7 +15,6 @@ For more information, see https://docs.aws.amazon.com/AWSCloudFormation/latest/U
 
 *A.* Launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template-size limitations. For more information, see http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html[AWS CloudFormation quotas^].
 
+*Q.* How can I access ClickHouse internal logs?
 
-== Troubleshooting
-* How can I access the ClickHouse internal logs?
-** On the CloudFormation service page, select the quickstart stack you just created and click the `CloudWatchDashboard` link in the Outputs, the internal ClickHouse and Zookeeper logs are found in the dashboard.
+*A.* Internal ClickHouse and ZooKeeper logs are found in the dashboard. On the AWS CloudFormation *Service* page, choose the Quick Start stack you created, and then choose `CloudWatchDashboard` from *Outputs*.

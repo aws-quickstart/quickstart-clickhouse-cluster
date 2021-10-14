@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: This template is used for setting up a Zookeeper cluster. (qs-1s4ldl6ti)
+Description: (SO8019) - This template is used for setting up a ZooKeeper cluster. (qs-1s4ldl6ti)
 
 Metadata:
   LICENSE: Apache License Version 2.0
@@ -16,7 +16,7 @@ Metadata:
       - ZookeeperServerSecurityGroupID
       - KeyPairName
     - Label:
-        default: Zookeeper configuration
+        default: ZooKeeper configuration
       Parameters:
       - ZookeeperNodeName1
       - ZookeeperNodeName2
@@ -43,25 +43,25 @@ Metadata:
       PrivateSubnetID2:
         default: Private subnet ID 2
       ZookeeperServerSecurityGroupID:
-        default: Zookeeper server security group
+        default: ZooKeeper server security group
       KeyPairName:
         default: Key pair name
       ZookeeperNodeName1:
-        default: Zookeeper node name 1
+        default: ZooKeeper node name 1
       ZookeeperNodeName2:
-        default: Zookeeper node name 2
+        default: ZooKeeper node name 2
       ZookeeperNodeName3:
-        default: Zookeeper node name 3
+        default: ZooKeeper node name 3
       ZookeeperInstanceType:
-        default: Zookeeper instance type
+        default: ZooKeeper instance type
       ZookeeperVersion:
-        default: Zookeeper version
+        default: ZooKeeper version
       ZookeeperNodeCount:
-        default: Zookeeper node count
+        default: ZooKeeper node count
       CloudWatchAgentURL:
         default: CloudWatch agent URL
       RootStackName:
-        default: Prefix name of Zookeeper cluster
+        default: Prefix name of ZooKeeper cluster
       DeviceName:
         default: Device name
       VolumeSize:
@@ -86,25 +86,25 @@ Parameters:
     Description: Private subnet ID 2.
     Type: String
   ZookeeperServerSecurityGroupID: 
-    Description: ID of the Zookeeper server access security group (e.g., sg-7f16e910).
+    Description: ID of the ZooKeeper server access security group (e.g., sg-7f16e910).
     Type: AWS::EC2::SecurityGroup::Id
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public/private key pairs allow you to securely connect to your instance after it launches.
   ZookeeperNodeName1: 
     Default: ZookeeperNode1
-    Description: Zookeeper node name 1.
+    Description: ZooKeeper node name 1.
     Type: String
   ZookeeperNodeName2:
     Default: ZookeeperNode2
-    Description: Zookeeper node name 2.
+    Description: ZooKeeper node name 2.
     Type: String
   ZookeeperNodeName3:
     Default: ZookeeperNode3
-    Description: Zookeeper node name 3.
+    Description: ZooKeeper node name 3.
     Type: String
   ZookeeperInstanceType: 
-    Description: Amazon EC2 instance type for the Zookeeper nodes.
+    Description: Amazon EC2 instance type for the ZooKeeper nodes.
     Type: String
     Default: i3.2xlarge
     AllowedValues: 
@@ -143,18 +143,18 @@ Parameters:
     - '3.6.3'
     - '3.7.0'
     Default: '3.5.9'
-    Description: Zookeeper version (3.5.9).
+    Description: ZooKeeper version (3.5.9).
     Type: String
   ZookeeperNodeCount:
     Default: 3
-    Description: Zookeeper node count.
+    Description: ZooKeeper node count.
     Type: Number
   CloudWatchAgentURL:
     Description: For each download link, you can download and install the CloudWatch agent using the command line.
     Type: String
   RootStackName:
     Type: String
-    Description: Prefix name of Zookeeper cluster.
+    Description: Prefix name of ZooKeeper cluster.
   DeviceName:
     Description: The device name (for example, /dev/sdh or xvdh).
     Type: String
@@ -322,7 +322,7 @@ Resources:
               - cloudwatch:ListMetrics
               - cloudwatch:DescribeAnomalyDetectors
             Resource: '*'
-        PolicyName: Zookeeper-Instance-Role
+        PolicyName: ZooKeeper-Instance-Role
   ZookeeperInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -1068,17 +1068,17 @@ Resources:
         Timeout: "PT30M"
 Outputs:
   ZookeeperInstanceID1:
-    Description: Zookeeper instance
+    Description: ZooKeeper instance
     Value: !Ref ZookeeperInstance1
   ZookeeperPrivateIp1:
     Value: !GetAtt ZookeeperInstance1.PrivateIp
   ZookeeperInstanceID2:
-    Description: Zookeeper instance
+    Description: ZooKeeper instance
     Value: !Ref ZookeeperInstance2
   ZookeeperPrivateIp2:
     Value: !GetAtt ZookeeperInstance2.PrivateIp
   ZookeeperInstanceID3:
-    Description: Zookeeper instance
+    Description: ZooKeeper instance
     Value: !Ref ZookeeperInstance3
   ZookeeperPrivateIp3:
     Value: !GetAtt ZookeeperInstance3.PrivateIp

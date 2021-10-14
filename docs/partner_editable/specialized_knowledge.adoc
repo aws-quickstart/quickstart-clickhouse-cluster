@@ -3,4 +3,4 @@
 // Include links if helpful. 
 // You don't need to list AWS services or point to general info about AWS; the boilerplate already covers this.
 
-This Quick Start assumes familiarity with https://aws.amazon.com/ec2/[Amazon EC2], https://aws.amazon.com/vpc/[Amazon VPC], and https://clickhouse.tech/[ClickHouse].
+This Quick Start assumes familiarity with https://aws.amazon.com/ec2/[Amazon EC2^], https://aws.amazon.com/vpc/[Amazon Virtual Private Cloud (VPC)^], and https://clickhouse.tech/[ClickHouse^].
