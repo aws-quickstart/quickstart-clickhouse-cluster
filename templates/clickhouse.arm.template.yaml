@@ -1,6 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: (SO8019) - This template is used for setting up a ClickHouse cluster on Graviton2. (qs-1s4ldl6tu)
+
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -31,11 +32,12 @@ Metadata:
       - ClickHouseVersion
       - ClickHouseTimezone
       - ClickHouseNodeCount
-      - DBPassword
+      - SecretId
       - ClickHouseBucketName
       - MoveFactor
       - RootStackName
       - DeviceName
+      - BlockDeviceName
       - VolumeSize
       - VolumeType
       - Iops
@@ -50,13 +52,14 @@ Metadata:
       - ZookeeperPrivateIp2
       - ZookeeperPrivateIp3
       - InstanceRoleArn
+      - SourceCodeStorage
     - Label:
         default: ClickHouse operation configuration
       Parameters:
       - GrafanaVersion
       - CloudWatchAgentURL
     - Label:
-        default: AWS Quick Start configuration
+        default: Amazon Web Services Quick Start configuration
       Parameters:
       - QSS3BucketName
       - QSS3KeyPrefix
@@ -95,8 +98,6 @@ Metadata:
         default: ClickHouse time zone
       ClickHouseNodeCount:
         default: Number of ClickHouse nodes
-      DBPassword:
-        default: DB password
       ClickHouseBucketName:
         default: ClickHouse bucket name
       MoveFactor:
@@ -128,11 +129,11 @@ Metadata:
       GrafanaVersion:
         default: Grafana version
       ZookeeperPrivateIp1:
-        default: ZooKeeper private IP 1
+        default: Zookeeper private IP 1
       ZookeeperPrivateIp2:
-        default: ZooKeeper private IP 2
+        default: Zookeeper private IP 2
       ZookeeperPrivateIp3:
-        default: ZooKeeper private IP 3
+        default: Zookeeper private IP 3
       CloudWatchAgentURL:
         default: CloudWatch agent URL
       InstanceRoleArn:
@@ -141,6 +142,12 @@ Metadata:
         default: AWS Quick Start S3 bucket name
       QSS3KeyPrefix:
         default: AWS Quick Start S3 key prefix
+      SecretId:
+        default: Secret id in SecretsManager
+      BlockDeviceName:
+        default: Device name for BlockDeviceMappings
+      SourceCodeStorage:
+        default: The ClickHouse source code storage
 Parameters: 
   PrivateSubnetID1: 
     Description: Private Subnet 1 ID.
@@ -192,18 +199,19 @@ Parameters:
   ClickHouseInstanceType: 
     Description: Amazon EC2 instance type for the ClickHouse nodes.
     Type: String
-    Default: r6gd.8xlarge
+    Default: r6g.8xlarge
     AllowedValues: 
-      - r6gd.xlarge
-      - r6gd.2xlarge
-      - r6gd.4xlarge
-      - r6gd.8xlarge
+      - r6g.xlarge
+      - r6g.2xlarge
+      - r6g.4xlarge
+      - r6g.8xlarge
+      - r6g.12xlarge
+      - r6g.16xlarge
   ClickHouseVersion:
     AllowedValues:
-    - '21.4.5.46-2'
-    - '21.5.5.12-2'
-    Default: '21.4.5.46-2'
-    Description: ClickHouse version (21.4.5 or 21.5.5).
+      - '21.8.7.22'
+    Default: '21.8.7.22'
+    Description: ClickHouse version.
     Type: String
   ClickHouseTimezone:
     Default: Asia/Shanghai
@@ -218,10 +226,6 @@ Parameters:
       - 4
       - 6
       - 8
-  DBPassword:
-    Default: Qwerty
-    Description: ClickHouse database password.
-    Type: String
   ClickHouseBucketName:
     Default: clickhouse-data
     Description: ClickHouse bucket name.
@@ -319,17 +323,17 @@ Parameters:
     - 'small'
     - 'medium'
     Default: 'small'
-    Description: AWS CloudFormation creates a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
+    Description: Cloudformation will create a demo table(OnTime dataset) for you and load data. You can choose the size of demo data --'small'100m / / -'medium'3g / / -'large'15g.
     Type: String
   ZookeeperPrivateIp1:
     Type: String
-    Description: ZooKeeper private IP 1.
+    Description: Zookeeper private IP 1.
   ZookeeperPrivateIp2:
     Type: String
-    Description: ZooKeeper private IP 2.
+    Description: Zookeeper private IP 2.
   ZookeeperPrivateIp3:
     Type: String
-    Description: ZooKeeper private IP 3.
+    Description: Zookeeper private IP 3.
   CloudWatchAgentURL:
     Description: For each download link, you can download and install the CloudWatch agent using the command line.
     Type: String
@@ -356,12 +360,51 @@ Parameters:
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slashes (/).
     Type: String
+  SecretId:
+    Type: String
+    Description: Dynamically generate a random text string stored in SecretsManager to use as a password.
+  BlockDeviceName:
+    Type: String
+    Default: /dev/sdb
+    Description: The device name for BlockDeviceMappings.
+  SourceCodeStorage:
+    Type: String
+    Default: github
+    Description: The ClickHouse source code storage. Support github or s3://bucketname/ClickHouse.zip.
 Mappings:
   AWSRegion2AMI:
     us-east-1:
       HVM64: ami-00d1ab6b335f217cf
     us-east-2:
       HVM64: ami-08e6b682a466887dd
+    us-west-1:
+      HVM64: ami-0c58a45b4cecce02c
+    us-west-2:
+      HVM64: ami-09d9c897fc36713bf
+    ap-south-1:
+      HVM64: ami-0d18acc6e813fd2e0
+    ap-northeast-2:
+      HVM64: ami-0815e517ed50fd3f4
+    ap-southeast-1:
+      HVM64: ami-077adae4d983338da
+    ap-southeast-2:
+      HVM64: ami-07aa5ef6af56f8da2
+    ap-northeast-1:
+      HVM64: ami-076d8ebdd0e1ec091
+    ca-central-1:
+      HVM64: ami-0994658be3d2178e0
+    eu-central-1:
+      HVM64: ami-08f11f4114f566d1a
+    eu-west-1:
+      HVM64: ami-09e0d6fdf60750e33
+    eu-west-2:
+      HVM64: ami-0960f1036d6edacf5
+    eu-west-3:
+      HVM64: ami-082e545ca343178ad
+    eu-north-1:
+      HVM64: ami-069568e10baf004ec
+    sa-east-1:
+      HVM64: ami-0c9c4f3290bbba7b4
     cn-north-1:
       HVM64: ami-0429c857c8db3027a
     cn-northwest-1:
@@ -498,6 +541,11 @@ Resources:
               - cloudwatch:ListMetrics
               - cloudwatch:DescribeAnomalyDetectors
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:GetSecretValue
+            Resource: !Sub arn:${InstanceRoleArn}:secretsmanager:*:${AWS::AccountId}:secret:*
         PolicyName: ClickHouse-Instance-Role
   ClickHouseInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -505,8 +553,35 @@ Resources:
       Path: /
       Roles:
       - !Ref ClickHouseInstanceRole
-  ClickHouseAdmin: 
-    Type: AWS::EC2::Instance
+  AdminAutoScalingGroup:
+    Condition: 2NodesCondition
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      LaunchConfigurationName: !Ref AdminLaunchConfiguration
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnetID1
+        - !Ref PrivateSubnetID2
+      MinSize: '1'
+      MaxSize: '1'
+      Cooldown: '900'
+      DesiredCapacity: '1'
+      Tags:
+        - Key: Name
+          Value: 'ClickHouseAdminClient'
+          PropagateAtLaunch: true
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT120M
+      AutoScalingCreationPolicy:
+        MinSuccessfulInstancesPercent: 100
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+  AdminLaunchConfiguration:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Condition: 2NodesCondition
+    DependsOn: ClickHouseInstance1
     Metadata:
       Comment: Install ClickHouse admin
       AWS::CloudFormation::Authentication:
@@ -645,8 +720,8 @@ Resources:
                content: !Sub |
                  [cfn-auto-reloader-hook]
                  triggers=post.update
-                 path=Resources.ClickHouseAdmin.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
-                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ClickHouseAdmin --region ${AWS::Region} --configsets UpdateEnvironment
+                 path=Resources.AdminLaunchConfiguration.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource AdminLaunchConfiguration --region ${AWS::Region} --configsets UpdateEnvironment
                  runas=root
                mode: '000400'
                owner: root
@@ -673,12 +748,11 @@ Resources:
       IamInstanceProfile: !Ref ClickHouseInstanceProfile
       ImageId: !FindInMap [AWSRegion2AMI, !Ref 'AWS::Region', HVM64]
       InstanceType: !Ref ClickHouseInstanceType
-      SubnetId: !Ref PrivateSubnetID1
-      SecurityGroupIds:
+      SecurityGroups:
       - !Ref ClickHouseServerSecurityGroup
       - !Ref AdminServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -688,8 +762,24 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-client-install.log
+            #apt-get upgrade -y >> /root/clickhouse-client-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-client-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-client-install.log
+                break
+              fi
+              # Download again to ensure correct installation
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-client-install.log
+              let flag--
+              sleep 120
+            done
+
+            apt install unzip  
             sudo apt install awscli<<EOF
             Y
             EOF
@@ -698,6 +788,10 @@ Resources:
             pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -711,13 +805,20 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            cfn-init -v --stack=${AWS::StackName} --resource=ArmAdminInstance  --region=${AWS::Region}
+            cfn-init -v --stack=${AWS::StackName} --resource=AdminLaunchConfiguration  --region=${AWS::Region}
+
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/downloaddata.sh ./ --region ${AWS::Region}
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-client-install.sh ./ --region ${AWS::Region}
 
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /var/lib/clickhouse
             sudo adduser --shell /bin/bash --gecos "" clickhouse<<EOF
-            Qwerty
-            Qwerty
+            clickhouse
+            clickhouse
             EOF
             sudo chown clickhouse.clickhouse -R /var/lib/clickhouse
             sudo mount ${DeviceName} /var/lib/clickhouse/
@@ -725,14 +826,19 @@ Resources:
 
             cd /var/lib/clickhouse/
             wget https://apt.llvm.org/llvm.sh
-            find /var/lib/clickhouse/ -name 'llvm.sh' | xargs perl -pi -e  's|LLVM_VERSION=12|LLVM_VERSION=11|g'
+            #find /var/lib/clickhouse/ -name 'llvm.sh' | xargs perl -pi -e  's|LLVM_VERSION=12|LLVM_VERSION=11|g'
             chmod +x llvm.sh
-            sudo bash -c ./llvm.sh
+            ./llvm.sh 11
 
             export CC=clang-11
             export CXX=clang++-11
 
-            git clone --recursive https://github.com/ClickHouse/ClickHouse.git
+            if [ ${SourceCodeStorage} = github ]; then
+                git clone --recursive https://github.com/ClickHouse/ClickHouse.git
+            else
+                aws s3 cp ${SourceCodeStorage} ./ --region ${AWS::Region}
+                unzip *.zip
+            fi
             cd ClickHouse
             mkdir build-arm64
             cmake . -Bbuild-arm64 -DUSE_STATIC_LIBRARIES=0 -DSPLIT_SHARED_LIBRARIES=1 -DCLICKHOUSE_SPLIT_BINARY=1
@@ -746,67 +852,34 @@ Resources:
             find /var/lib/clickhouse/clickhouse-server-${ClickHouseVersion}/install/ -name 'doinst.sh' | xargs perl -pi -e  's|done|done;rm -f /usr/bin/clickhouse-*;cp -r -f /var/lib/clickhouse/ClickHouse/build-arm64/programs/clickhouse-* /usr/bin/|g'
 
             sudo chmod +x clickhouse-client-${ClickHouseVersion}/install/doinst.sh
+            sudo chmod +x clickhouse-server-${ClickHouseVersion}/install/doinst.sh
 
             mkdir -p /var/log/clickhouse-server
             sudo chown clickhouse.clickhouse -R /var/log/clickhouse-server
             sudo chown clickhouse.clickhouse -R /var/lib/clickhouse
 
             sudo clickhouse-client-${ClickHouseVersion}/install/doinst.sh
+            sudo clickhouse-server-${ClickHouseVersion}/install/doinst.sh
 
-            aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-admin,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+            cd /root/
             
-            # install grafana 
-            mkdir -p /home/ec2-user/tools/install/
-            cd /home/ec2-user/tools/install/
-            mkdir /home/ec2-user/tools/install/grafana
-
-            wget https://dl.grafana.com/oss/release/grafana-${GrafanaVersion}.x86_64.rpm
-            sudo yum install grafana-${GrafanaVersion}.x86_64.rpm -y
-            sleep 1
-
-            sudo grafana-cli plugins install vertamedia-clickhouse-datasource
-            find /etc/grafana/ -name 'grafana.ini' | xargs perl -pi -e  "s|;admin_password = admin|;admin_password = ${DBPassword}|g"
-            sudo systemctl stop grafana-server
-            sudo systemctl start grafana-server
-            sleep 1
-            sudo systemctl status grafana-server
-
-            # demo data
-            if [ ${DemoDataSize} = small ]; then
-                ontimefrom=1988
-                ontimeto=1989
-            elif [ ${DemoDataSize} = medium ]; then
-                ontimefrom=1988
-                ontimeto=1995
-            elif [ ${DemoDataSize} = large ]; then
-                ontimefrom=1988
-                ontimeto=2010
-            elif [ ${DemoDataSize} = no ]; then
-                ontimefrom=0
-                ontimeto=0
-            else
-                echo "Parameters not found or inaccessible."
-            fi
-
-            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/downloaddata.sh ./ --region ${AWS::Region}
-            mkdir -pv /home/ec2-user/tools/install/demodata
-            cd /home/ec2-user/tools/install/demodata
-            mv /home/ec2-user/downloaddata.sh .
-
-            sed -i "s|ontimefrom|$ontimefrom|" /home/ec2-user/tools/install/demodata/downloaddata.sh
-            sed -i "s|ontimeto|$ontimeto|" /home/ec2-user/tools/install/demodata/downloaddata.sh
-
-            chmod +x /home/ec2-user/tools/install/demodata/downloaddata.sh 
-            ./downloaddata.sh 
-            sleep 1
-
-            ls -1 *.zip | xargs -I{} -P $(nproc) bash -c "echo {}; unzip -cq {} '*.csv' | sed 's/\.00//g' | clickhouse-client --host $node1 --password $2 --input_format_with_names_use_header=0 --query='INSERT INTO ontime FORMAT CSVWithNames'"
-            sleep 1
-
-            cfn-signal -e $? --stack=${AWS::StackId} --resource=ArmAdminInstance --region=${AWS::Region}
-      Tags:
-      - Key: Name
-        Value: 'ClickHouseAdminClient'
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-client-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-client-install.log
+                  return 1
+              fi
+            }
+            chmod +x clickhouse-arm-client-install.sh
+            ./clickhouse-arm-client-install.sh ${ClickHouseVersion} `python3 ./find-secret.py secretfile ` ${RootStackName} ${AWS::Region} ${DemoDataSize} ${ClickHouseNodeCount} ${GrafanaVersion} >> /root/clickhouse-client-install.log
+             
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource AdminAutoScalingGroup --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
         Count: 1
@@ -984,7 +1057,7 @@ Resources:
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -994,16 +1067,36 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-install.log
+            #apt-get upgrade -y >> /root/clickhouse-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-install.log
+                break
+              fi
+              echo "Download again to ensure correct installation" >> /root/clickhouse-install.log
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+              let flag--
+              sleep 120
+            done
+            apt install unzip
             sudo apt install awscli<<EOF
             Y
             EOF
 
-            apt install python3-pip -y
-            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+            echo "begin python install" >> /root/clickhouse-install.log
+            apt install python3-pip -y >> /root/clickhouse-install.log
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools >> /root/clickhouse-install.log
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -1016,7 +1109,7 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance1  --region ${AWS::Region}
+            cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance1  --region ${AWS::Region}
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
@@ -1024,38 +1117,75 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard01-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-            cd /home/ec2-user/
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" ${SourceCodeStorage} >> /root/clickhouse-install.log
 
-            chmod +r /home/ec2-user/create-table-demo.sql
+            chmod +r /root/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python3 ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" >> /root/clickhouse-install.log
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> /root/clickhouse-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance1 --region ${AWS::Region}
+            # Clean
+            rm -rf /root/find-clickhouse-node.py
+            rm -rf /root/clickhouse-arm-install.sh
+            rm -rf /root/instancelist-1
+            rm -rf /root/result-1
+            rm -rf /root/instancelist-2
+            rm -rf /root/result-2
+            rm -rf /root/instancelist-3
+            rm -rf /root/result-3
+            rm -rf /root/instancelist-4
+            rm -rf /root/result-4
+            rm -rf /root/instancelist-5
+            rm -rf /root/result-5
+            rm -rf /root/instancelist-6
+            rm -rf /root/result-6
+            rm -rf /root/instancelist-7
+            rm -rf /root/result-7
+            rm -rf /root/instancelist-8
+            rm -rf /root/result-8
+
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> /root/clickhouse-install.log
+            clickhouse-client --user default --password `python3 ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance1 --region ${AWS::Region}
       Tags:
       - Key: Name
         Value: !Ref ClickHouseNodeName1
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT120M"
   ClickHouseInstance2:
     Condition: 2NodesCondition
     Type: AWS::EC2::Instance
@@ -1229,7 +1359,7 @@ Resources:
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -1239,16 +1369,36 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-install.log
+            #apt-get upgrade -y >> /root/clickhouse-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-install.log
+                break
+              fi
+              echo "Download again to ensure correct installation" >> /root/clickhouse-install.log
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+              let flag--
+              sleep 120
+            done
+            apt install unzip
             sudo apt install awscli<<EOF
             Y
             EOF
 
-            apt install python3-pip -y
-            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+            echo "begin python install" >> /root/clickhouse-install.log
+            apt install python3-pip -y >> /root/clickhouse-install.log
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools >> /root/clickhouse-install.log
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -1261,7 +1411,7 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance2  --region ${AWS::Region}
+            cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance2  --region ${AWS::Region}
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
@@ -1269,38 +1419,75 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard01-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-            cd /home/ec2-user/
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "02" ${SourceCodeStorage} >> /root/clickhouse-install.log
 
-            chmod +r /home/ec2-user/create-table-demo.sql
+            chmod +r /root/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python3 ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" >> /root/clickhouse-install.log
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> /root/clickhouse-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance2 --region ${AWS::Region}
+            # Clean
+            rm -rf /root/find-clickhouse-node.py
+            rm -rf /root/clickhouse-arm-install.sh
+            rm -rf /root/instancelist-1
+            rm -rf /root/result-1
+            rm -rf /root/instancelist-2
+            rm -rf /root/result-2
+            rm -rf /root/instancelist-3
+            rm -rf /root/result-3
+            rm -rf /root/instancelist-4
+            rm -rf /root/result-4
+            rm -rf /root/instancelist-5
+            rm -rf /root/result-5
+            rm -rf /root/instancelist-6
+            rm -rf /root/result-6
+            rm -rf /root/instancelist-7
+            rm -rf /root/result-7
+            rm -rf /root/instancelist-8
+            rm -rf /root/result-8
+
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> /root/clickhouse-install.log
+            clickhouse-client --user default --password `python3 ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance2 --region ${AWS::Region}
       Tags:
       - Key: Name
         Value: !Ref ClickHouseNodeName2
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT120M"
   ClickHouseInstance3: 
     Condition: 4NodesCondition
     Type: AWS::EC2::Instance
@@ -1474,7 +1661,7 @@ Resources:
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -1484,16 +1671,36 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-install.log
+            #apt-get upgrade -y >> /root/clickhouse-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-install.log
+                break
+              fi
+              echo "Download again to ensure correct installation" >> /root/clickhouse-install.log
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+              let flag--
+              sleep 120
+            done
+            apt install unzip
             sudo apt install awscli<<EOF
             Y
             EOF
 
-            apt install python3-pip -y
-            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+            echo "begin python install" >> /root/clickhouse-install.log
+            apt install python3-pip -y >> /root/clickhouse-install.log
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools >> /root/clickhouse-install.log
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -1507,46 +1714,84 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance3  --region ${AWS::Region}
+            cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance3  --region ${AWS::Region}
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
             echo "${DeviceName}  /home/clickhouse/data  xfs  defaults  0  0" >> /etc/fstab
+            df -h >> /root/clickhouse-install.log
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard02-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-            cd /home/ec2-user/
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" ${SourceCodeStorage} >> /root/clickhouse-install.log
 
-            chmod +r /home/ec2-user/create-table-demo.sql
+            chmod +r /root/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python3 ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" >> /root/clickhouse-install.log
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> /root/clickhouse-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance3 --region ${AWS::Region}
+            # Clean
+            rm -rf /root/find-clickhouse-node.py
+            rm -rf /root/clickhouse-arm-install.sh
+            rm -rf /root/instancelist-1
+            rm -rf /root/result-1
+            rm -rf /root/instancelist-2
+            rm -rf /root/result-2
+            rm -rf /root/instancelist-3
+            rm -rf /root/result-3
+            rm -rf /root/instancelist-4
+            rm -rf /root/result-4
+            rm -rf /root/instancelist-5
+            rm -rf /root/result-5
+            rm -rf /root/instancelist-6
+            rm -rf /root/result-6
+            rm -rf /root/instancelist-7
+            rm -rf /root/result-7
+            rm -rf /root/instancelist-8
+            rm -rf /root/result-8
+
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> /root/clickhouse-install.log
+            clickhouse-client --user default --password `python3 ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance3 --region ${AWS::Region}
       Tags:
       - Key: Name
         Value: !Ref ClickHouseNodeName3
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT120M"
   ClickHouseInstance4: 
     Condition: 4NodesCondition
     Type: AWS::EC2::Instance
@@ -1720,7 +1965,7 @@ Resources:
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -1730,16 +1975,36 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-install.log
+            #apt-get upgrade -y >> /root/clickhouse-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-install.log
+                break
+              fi
+              echo "Download again to ensure correct installation" >> /root/clickhouse-install.log
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+              let flag--
+              sleep 120
+            done
+            apt install unzip
             sudo apt install awscli<<EOF
             Y
             EOF
 
-            apt install python3-pip -y
-            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+            echo "begin python install" >> /root/clickhouse-install.log
+            apt install python3-pip -y >> /root/clickhouse-install.log
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools >> /root/clickhouse-install.log
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -1753,7 +2018,7 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance4  --region ${AWS::Region}
+            cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance4  --region ${AWS::Region}
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
@@ -1761,38 +2026,75 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard02-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-            cd /home/ec2-user/
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" ${SourceCodeStorage} >> /root/clickhouse-install.log
 
-            chmod +r /home/ec2-user/create-table-demo.sql
+            chmod +r /root/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python3 ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" >> /root/clickhouse-install.log
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> /root/clickhouse-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance4 --region ${AWS::Region}
+            # Clean
+            rm -rf /root/find-clickhouse-node.py
+            rm -rf /root/clickhouse-arm-install.sh
+            rm -rf /root/instancelist-1
+            rm -rf /root/result-1
+            rm -rf /root/instancelist-2
+            rm -rf /root/result-2
+            rm -rf /root/instancelist-3
+            rm -rf /root/result-3
+            rm -rf /root/instancelist-4
+            rm -rf /root/result-4
+            rm -rf /root/instancelist-5
+            rm -rf /root/result-5
+            rm -rf /root/instancelist-6
+            rm -rf /root/result-6
+            rm -rf /root/instancelist-7
+            rm -rf /root/result-7
+            rm -rf /root/instancelist-8
+            rm -rf /root/result-8
+
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> /root/clickhouse-install.log
+            clickhouse-client --user default --password `python3 ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance4 --region ${AWS::Region}
       Tags:
       - Key: Name
         Value: !Ref ClickHouseNodeName4
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT120M"
   ClickHouseInstance5: 
     Condition: 6NodesCondition
     Type: AWS::EC2::Instance
@@ -1966,7 +2268,7 @@ Resources:
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -1976,16 +2278,36 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-install.log
+            #apt-get upgrade -y >> /root/clickhouse-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-install.log
+                break
+              fi
+              echo "Download again to ensure correct installation" >> /root/clickhouse-install.log
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+              let flag--
+              sleep 120
+            done
+            apt install unzip
             sudo apt install awscli<<EOF
             Y
             EOF
 
-            apt install python3-pip -y
-            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+            echo "begin python install" >> /root/clickhouse-install.log
+            apt install python3-pip -y >> /root/clickhouse-install.log
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools >> /root/clickhouse-install.log
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -1999,7 +2321,7 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance5  --region ${AWS::Region}
+            cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance5  --region ${AWS::Region}
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
@@ -2007,38 +2329,75 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard03-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-            cd /home/ec2-user/
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region} 
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" ${SourceCodeStorage} >> /root/clickhouse-install.log
 
-            chmod +r /home/ec2-user/create-table-demo.sql
+            chmod +r /root/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python3 ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" >> /root/clickhouse-install.log
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> /root/clickhouse-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance5 --region ${AWS::Region}
+            # Clean
+            rm -rf /root/find-clickhouse-node.py
+            rm -rf /root/clickhouse-arm-install.sh
+            rm -rf /root/instancelist-1
+            rm -rf /root/result-1
+            rm -rf /root/instancelist-2
+            rm -rf /root/result-2
+            rm -rf /root/instancelist-3
+            rm -rf /root/result-3
+            rm -rf /root/instancelist-4
+            rm -rf /root/result-4
+            rm -rf /root/instancelist-5
+            rm -rf /root/result-5
+            rm -rf /root/instancelist-6
+            rm -rf /root/result-6
+            rm -rf /root/instancelist-7
+            rm -rf /root/result-7
+            rm -rf /root/instancelist-8
+            rm -rf /root/result-8
+
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> /root/clickhouse-install.log
+            clickhouse-client --user default --password `python3 ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance5 --region ${AWS::Region}
       Tags:
       - Key: Name
         Value: !Ref ClickHouseNodeName5
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT120M"
   ClickHouseInstance6: 
     Condition: 6NodesCondition
     Type: AWS::EC2::Instance
@@ -2212,7 +2571,7 @@ Resources:
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -2222,16 +2581,36 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-install.log
+            #apt-get upgrade -y >> /root/clickhouse-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-install.log
+                break
+              fi
+              echo "Download again to ensure correct installation" >> /root/clickhouse-install.log
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+              let flag--
+              sleep 120
+            done
+            apt install unzip
             sudo apt install awscli<<EOF
             Y
             EOF
 
-            apt install python3-pip -y
-            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+            echo "begin python install" >> /root/clickhouse-install.log
+            apt install python3-pip -y >> /root/clickhouse-install.log
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools >> /root/clickhouse-install.log
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -2245,7 +2624,7 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance6  --region ${AWS::Region}
+            cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance6  --region ${AWS::Region}
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
@@ -2253,38 +2632,75 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard03-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-            cd /home/ec2-user/
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" ${SourceCodeStorage} >> /root/clickhouse-install.log
 
-            chmod +r /home/ec2-user/create-table-demo.sql
+            chmod +r /root/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python3 ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" >> /root/clickhouse-install.log
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> /root/clickhouse-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region}
+            # Clean
+            rm -rf /root/find-clickhouse-node.py
+            rm -rf /root/clickhouse-arm-install.sh
+            rm -rf /root/instancelist-1
+            rm -rf /root/result-1
+            rm -rf /root/instancelist-2
+            rm -rf /root/result-2
+            rm -rf /root/instancelist-3
+            rm -rf /root/result-3
+            rm -rf /root/instancelist-4
+            rm -rf /root/result-4
+            rm -rf /root/instancelist-5
+            rm -rf /root/result-5
+            rm -rf /root/instancelist-6
+            rm -rf /root/result-6
+            rm -rf /root/instancelist-7
+            rm -rf /root/result-7
+            rm -rf /root/instancelist-8
+            rm -rf /root/result-8
+
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> /root/clickhouse-install.log
+            clickhouse-client --user default --password `python3 ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region}
       Tags:
       - Key: Name
         Value: !Ref ClickHouseNodeName6
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT120M"
   ClickHouseInstance7: 
     Condition: 8NodesCondition
     Type: AWS::EC2::Instance
@@ -2458,7 +2874,7 @@ Resources:
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -2468,16 +2884,36 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-install.log
+            #apt-get upgrade -y >> /root/clickhouse-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-install.log
+                break
+              fi
+              echo "Download again to ensure correct installation" >> /root/clickhouse-install.log
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+              let flag--
+              sleep 120
+            done
+            apt install unzip
             sudo apt install awscli<<EOF
             Y
             EOF
 
-            apt install python3-pip -y
-            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+            echo "begin python install" >> /root/clickhouse-install.log
+            apt install python3-pip -y >> /root/clickhouse-install.log
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools >> /root/clickhouse-install.log
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -2491,7 +2927,7 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance7  --region ${AWS::Region}
+            cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance7  --region ${AWS::Region}
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
@@ -2499,38 +2935,75 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard04-replica01,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-            cd /home/ec2-user/
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" ${SourceCodeStorage} >> /root/clickhouse-install.log
 
-            chmod +r /home/ec2-user/create-table-demo.sql
+            chmod +r /root/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python3 ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" >> /root/clickhouse-install.log
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> /root/clickhouse-install.log
                 break
             fi
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance7 --region ${AWS::Region}
+            # Clean
+            rm -rf /root/find-clickhouse-node.py
+            rm -rf /root/clickhouse-arm-install.sh
+            rm -rf /root/instancelist-1
+            rm -rf /root/result-1
+            rm -rf /root/instancelist-2
+            rm -rf /root/result-2
+            rm -rf /root/instancelist-3
+            rm -rf /root/result-3
+            rm -rf /root/instancelist-4
+            rm -rf /root/result-4
+            rm -rf /root/instancelist-5
+            rm -rf /root/result-5
+            rm -rf /root/instancelist-6
+            rm -rf /root/result-6
+            rm -rf /root/instancelist-7
+            rm -rf /root/result-7
+            rm -rf /root/instancelist-8
+            rm -rf /root/result-8
+
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> /root/clickhouse-install.log
+            clickhouse-client --user default --password `python3 ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance7 --region ${AWS::Region}
       Tags:
       - Key: Name
         Value: !Ref ClickHouseNodeName7
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT120M"
   ClickHouseInstance8: 
     Condition: 8NodesCondition
     Type: AWS::EC2::Instance
@@ -2704,7 +3177,7 @@ Resources:
       SecurityGroupIds:
       - !Ref ClickHouseServerSecurityGroup
       BlockDeviceMappings:
-      - DeviceName: !Ref DeviceName
+      - DeviceName: !Ref BlockDeviceName
         Ebs:
           VolumeSize: !Ref VolumeSize
           VolumeType: !Ref VolumeType
@@ -2714,16 +3187,36 @@ Resources:
         !Base64
           Fn::Sub: |
             #!/bin/bash
-            sudo apt-get update -y
-            sudo apt-get install git cmake python3 ninja-build -y
+            apt-get update -y >> /root/clickhouse-install.log
+            #apt-get upgrade -y >> /root/clickhouse-install.log
+            sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+            flag=6
+            while((flag > 0))
+            do
+              cmake
+              if [ $? = 0 ]; then
+                echo "cmake install success" >> /root/clickhouse-install.log
+                break
+              fi
+              echo "Download again to ensure correct installation" >> /root/clickhouse-install.log
+              sudo apt-get install git cmake python3 ninja-build -y >> /root/clickhouse-install.log
+              let flag--
+              sleep 120
+            done
+            apt install unzip
             sudo apt install awscli<<EOF
             Y
             EOF
 
-            apt install python3-pip -y
-            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools
+            echo "begin python install" >> /root/clickhouse-install.log
+            apt install python3-pip -y >> /root/clickhouse-install.log
+            pip3 install python-daemon==2.1.0 pystache==0.4.0 docutils setuptools >> /root/clickhouse-install.log
 
             wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            if [ $? -ne 0 ]; then
+              sleep 10
+              wget -P /root/ https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            fi
             tar -xvf /root/aws-cfn-bootstrap-py3-latest.tar.gz -C /root/
             ln -s /root/aws-cfn-bootstrap-2.0/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
@@ -2737,7 +3230,7 @@ Resources:
             wget ${CloudWatchAgentURL}
             sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance8  --region ${AWS::Region}
+            cfn-init -v --stack ${AWS::StackName} --resource ClickHouseInstance8  --region ${AWS::Region}
             sudo mkfs.xfs ${DeviceName}
             sudo mkdir -p /home/clickhouse/data
             sudo mount ${DeviceName} /home/clickhouse/data
@@ -2745,38 +3238,76 @@ Resources:
 
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-shard04-replica02,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
             aws ec2 create-tags --region ${AWS::Region} --resources `curl http://169.254.169.254/latest/meta-data/instance-id` --tags Key=${RootStackName}-clickhouse-cluster,Value=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-            cd /home/ec2-user/
+            cd /root/
+            aws secretsmanager get-secret-value --secret-id ${SecretId} --region ${AWS::Region} > secretfile
+            aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-secret.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/find-clickhouse-node.py ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} ${DBPassword} ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" > ch-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" ${SourceCodeStorage} >> /root/clickhouse-install.log
 
-            chmod +r /home/ec2-user/create-table-demo.sql
+            chmod +r /root/create-table-demo.sql
             flag=600
             while((flag > 0))
             do
-            clickhouse-client --password ${DBPassword} --query "SELECT * FROM system.clusters;" > /dev/null
+            clickhouse-client --password `python3 ./find-secret.py secretfile ` --query "SELECT * FROM system.clusters;" >> /root/clickhouse-install.log
             if [ $? -eq 0 ]
             then
-                echo "ClickHouse is running"
+                echo "ClickHouse is running" >> /root/clickhouse-install.log
                 break
             fi
+            echo "clickhouse-client is failed" >> /root/clickhouse-install.log
             let flag--
             sleep 1
             done
-            
-            echo "Begin to create demo table"
-            clickhouse-client --user default --password ${DBPassword} -d default --multiquery <  create-table-demo.sql
 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance6 --region ${AWS::Region}
+            # Clean
+            rm -rf /root/find-clickhouse-node.py
+            rm -rf /root/clickhouse-arm-install.sh
+            rm -rf /root/instancelist-1
+            rm -rf /root/result-1
+            rm -rf /root/instancelist-2
+            rm -rf /root/result-2
+            rm -rf /root/instancelist-3
+            rm -rf /root/result-3
+            rm -rf /root/instancelist-4
+            rm -rf /root/result-4
+            rm -rf /root/instancelist-5
+            rm -rf /root/result-5
+            rm -rf /root/instancelist-6
+            rm -rf /root/result-6
+            rm -rf /root/instancelist-7
+            rm -rf /root/result-7
+            rm -rf /root/instancelist-8
+            rm -rf /root/result-8
+
+            function cfn_check_result
+            {
+              if [ $? = 0 ]; then
+                  echo "Create demo table success" >> /root/clickhouse-install.log
+                  rm -rf secretfile
+                  rm -rf find-secret.py
+                  rm -rf create-table-demo.sql
+                  return 0
+              else
+                  echo "Fail to create demo table" >> /root/clickhouse-install.log
+                  return 1
+              fi
+            }
+            
+            echo "Begin to create demo table" >> /root/clickhouse-install.log
+            clickhouse-client --user default --password `python3 ./find-secret.py secretfile ` -d default --multiquery <  create-table-demo.sql
+
+            cfn_check_result
+            cfn-signal -e $? --stack ${AWS::StackId} --resource ClickHouseInstance8 --region ${AWS::Region}
       Tags:
       - Key: Name
         Value: !Ref ClickHouseNodeName8
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT120M"
 Outputs:
   ClickHouseInstanceID1:
     Condition: 2NodesCondition
