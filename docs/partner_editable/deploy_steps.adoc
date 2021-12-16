@@ -28,14 +28,13 @@ Each deployment takes about {deployment_time} to complete.
 +
 [cols="3,1"]
 |===
-^|http://qs_launch_permalink[Deploy {partner-product-short-name} into a new VPC on AWS^]
-^|https://aws-quickstart.s3.amazonaws.com/quickstart-clickhouse-cluster/templates/clickhouse-entrypoint-new-vpc.template.yaml[View template^]
+^|https://fwd.aws/N4maE?[Deploy {partner-product-short-name} into a new VPC on AWS^]
+^|https://fwd.aws/6QaWE?[View template^]
 
-^|http://qs_launch_permalink[Deploy {partner-product-short-name} into an existing VPC on AWS^]
-^|https://aws-quickstart.s3.amazonaws.com/quickstart-clickhouse-cluster/templates/clickhouse-entrypoint-existing-vpc.template.yaml[View template^]
+^|https://fwd.aws/y4mMk?[Deploy {partner-product-short-name} into an existing VPC on AWS^]
+^|https://fwd.aws/XynX5?[View template^]
 |===
 +
 . Check the AWS Region that’s displayed in the upper-right corner of the navigation bar, and change it if necessary. This Region is where the network infrastructure for {partner-product-short-name} is built. The template is launched in the {default_deployment_region} Region by default. For other choices, see link:#_supported_regions[Supported Regions], earlier in this guide.
 . On the *Create stack* page, keep the default setting for the template URL, and then choose *Next*.
-. On the *Specify stack details* page, change the stack name if needed. Review the parameters for the template, and provide values for any parameters that require input. For all other parameters, review the default settings and customize them as necessary. For more information, see the link:#_parameter_reference[Parameter reference] section.
-. When you finish reviewing and customizing the parameters, choose *Next*.
+. On the *Specify stack details* page, change the stack name if needed. Review the parameters for the template, and provide values for any parameters that require input. For all other parameters, review the default settings and customize them as necessary. When you finish reviewing and customizing the parameters, choose *Next*.
