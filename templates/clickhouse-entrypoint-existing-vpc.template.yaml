@@ -422,7 +422,7 @@ Parameters:
     - '8'
     - '16'
     Default: '4'
-    Description: Maxiumum inserted threads for ClickHouse default users. This is the maximum number of threads that run the INSERT SELECT query.
+    Description: Maximum inserted threads for ClickHouse default users. This is the maximum number of threads that run the INSERT SELECT query.
     Type: String
   DistributedProductMode:
     AllowedValues:
@@ -431,7 +431,7 @@ Parameters:
     - 'global'
     - 'allow'
     Default: 'global'
-    Description: Distributed product mode for ClickHouse default users. ClickHouse applies this setting when the query contains the product of distributed tables. That is, it applies when the query for a distributed table contains a nonglobal subquery for the distributed table.
+    Description: Distributed product mode for ClickHouse default users. ClickHouse applies this setting when the query contains the product of distributed tables. That is, it applies when the query for a distributed table contains a non-global sub-query for the distributed table.
     Type: String
   LoadBalancing:
     AllowedValues:
@@ -480,7 +480,7 @@ Parameters:
     - 'medium'
     - 'none'
     Default: 'small'
-    Description: "AWS CloudFormation creates a demontration table (OnTime dataset) for you and loads data. You can choose the size of demonstration data (e.g., 'small'100m / / -'medium'3g / / -'large'15g)."
+    Description: "AWS CloudFormation creates a demonstration table (OnTime dataset) for you and loads data. You can choose the size of demonstration data (e.g., 'small'100m / / -'medium'3g / / -'large'15g)."
     Type: String
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
