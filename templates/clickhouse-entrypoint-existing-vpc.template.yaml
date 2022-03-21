@@ -164,7 +164,7 @@ Metadata:
 Parameters:
   VPCID:
     Description: Existing VPC ID.
-    Type: String
+    Type: AWS::EC2::VPC::Id
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
@@ -173,16 +173,16 @@ Parameters:
     Type: String
   PublicSubnet1ID:
     Description: Public subnet 1 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PublicSubnet2ID:
     Description: Public subnet 2 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PrivateSubnet1AID:
     Description: Private subnet 1 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PrivateSubnet2AID:
     Description: Private subnet 2 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   RemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x.
@@ -352,10 +352,9 @@ Parameters:
       - i3.16xlarge
   ClickHouseVersion:
     AllowedValues:
-    - '21.4.5.46-2'
-    - '21.5.5.12-2'
-    Default: '21.4.5.46-2'
-    Description: ClickHouse version (21.4.5 or 21.5.5).
+    - '22.2.2.1'
+    Default: '22.2.2.1'
+    Description: ClickHouse version (22.2.2.1).
     Type: String
   ClickHouseTimezone:
     Default: Asia/Shanghai #America/Los_Angeles

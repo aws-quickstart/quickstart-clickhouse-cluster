@@ -47,9 +47,11 @@ chown -R clickhouse.clickhouse /var/lib/clickhouse/
 cd /var/lib/clickhouse/
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-./llvm.sh 11
-export CC=clang-11
-export CXX=clang++-11
+if [ $1 = 21.12.3.32 ]; then
+    ./llvm.sh 12
+    export CC=clang-12
+    export CXX=clang++-12
+fi
 
 if [ ${20} = github ]; then
     if [ $4 = cn-north-1 ]; then
@@ -61,8 +63,9 @@ if [ ${20} = github ]; then
         git clone --recursive https://gitee.com/mirrors/clickhouse.git
         mv clickhouse ClickHouse
     else
-        #git clone --recursive https://github.com/ClickHouse/ClickHouse.git
-        wget https://github.com/ClickHouse/ClickHouse/releases/download/v${1}-lts/ClickHouse_sources_with_submodules.tar.gz
+        if [ $1 = 21.12.3.32 ]; then
+            wget https://github.com/ClickHouse/ClickHouse/releases/download/v${1}-stable/ClickHouse_sources_with_submodules.tar.gz
+        fi
         tar -xvf ClickHouse_sources_with_submodules.tar.gz
     fi
 else
@@ -77,10 +80,10 @@ ninja -C build-arm64 clickhouse > ninja.out
 
 
 cd ..
-#wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-$1.tgz
-#wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-$1.tgz
-wget https://repo.yandex.ru/clickhouse/tgz/lts/clickhouse-server-$1.tgz
-wget https://repo.yandex.ru/clickhouse/tgz/lts/clickhouse-client-$1.tgz
+if [ $1 = 21.12.3.32 ]; then
+    wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-$1.tgz
+    wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-$1.tgz
+fi
 tar -xzvf clickhouse-client-$1.tgz
 tar -xzvf clickhouse-server-$1.tgz
 find /var/lib/clickhouse/clickhouse-server-$1/install/ -name 'doinst.sh' | xargs perl -pi -e  "s|done|done;rm -f /usr/bin/clickhouse-*;cp -r -f /var/lib/clickhouse/ClickHouse/build-arm64/programs/clickhouse-* /usr/bin/|g"
@@ -342,15 +345,9 @@ then
     done
 fi
 
-if [ $1 = 21.4.5.46 ]; then
-    echo "Update the config.xml of $1"
-    sed -i '508, 617d' /etc/clickhouse-server/config.xml
-elif [ $1 = 21.5.5.12 ]; then
-    echo "Update the config.xml of $1"
-    sed -i '520, 630d' /etc/clickhouse-server/config.xml
-elif [ $1 = 21.8.7.22 ]; then
-    echo "Update the config.xml of $1"
-    sed -i '590, 695d' /etc/clickhouse-server/config.xml
+echo "Update the config.xml of $1"
+if [ $1 = 21.12.3.32 ]; then
+    sed -i '615, 721d' /etc/clickhouse-server/config.xml
 fi
 
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  's|<!--</remote_url_allow_hosts>-->|<!--</remote_url_allow_hosts>--><include_from>/etc/clickhouse-server/metrika.xml</include_from><remote_servers incl="clickhouse_remote_servers" /><zookeeper incl="zookeeper-servers" optional="true" />|g'

@@ -209,8 +209,8 @@ Parameters:
       - r6g.16xlarge
   ClickHouseVersion:
     AllowedValues:
-      - '21.8.7.22'
-    Default: '21.8.7.22'
+      - '21.12.3.32'
+    Default: '21.12.3.32'
     Description: ClickHouse version.
     Type: String
   ClickHouseTimezone:
@@ -828,13 +828,15 @@ Resources:
             wget https://apt.llvm.org/llvm.sh
             #find /var/lib/clickhouse/ -name 'llvm.sh' | xargs perl -pi -e  's|LLVM_VERSION=12|LLVM_VERSION=11|g'
             chmod +x llvm.sh
-            ./llvm.sh 11
-
-            export CC=clang-11
-            export CXX=clang++-11
+            ./llvm.sh 12
+            export CC=clang-12
+            export CXX=clang++-12
 
             if [ ${SourceCodeStorage} = github ]; then
-                git clone --recursive https://github.com/ClickHouse/ClickHouse.git
+                if [ ${ClickHouseVersion} = 21.12.3.32 ]; then
+                    wget https://github.com/ClickHouse/ClickHouse/releases/download/v${ClickHouseVersion}-stable/ClickHouse_sources_with_submodules.tar.gz
+                fi
+                tar -xvf ClickHouse_sources_with_submodules.tar.gz
             else
                 aws s3 cp ${SourceCodeStorage} ./ --region ${AWS::Region}
                 unzip *.zip
@@ -845,8 +847,10 @@ Resources:
             ninja -C build-arm64 clickhouse > ninja.out
 
             cd ..
-            wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-${ClickHouseVersion}.tgz
-            wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-${ClickHouseVersion}.tgz
+            if [ $1 = 21.12.3.32 ]; then
+                wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-${ClickHouseVersion}.tgz
+                wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-${ClickHouseVersion}.tgz
+            fi
             tar -xzvf clickhouse-client-${ClickHouseVersion}.tgz
             tar -xzvf clickhouse-server-${ClickHouseVersion}.tgz
             find /var/lib/clickhouse/clickhouse-server-${ClickHouseVersion}/install/ -name 'doinst.sh' | xargs perl -pi -e  's|done|done;rm -f /usr/bin/clickhouse-*;cp -r -f /var/lib/clickhouse/ClickHouse/build-arm64/programs/clickhouse-* /usr/bin/|g'

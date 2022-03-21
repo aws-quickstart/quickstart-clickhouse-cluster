@@ -342,8 +342,8 @@ Parameters:
       - r6g.16xlarge
   ClickHouseVersion:
     AllowedValues:
-      - '21.8.7.22'
-    Default: '21.8.7.22'
+      - '21.12.3.32'
+    Default: '21.12.3.32'
     Description: ClickHouse version.
     Type: String
   ClickHouseTimezone:

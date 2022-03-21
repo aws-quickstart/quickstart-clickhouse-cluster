@@ -291,12 +291,9 @@ then
     done
 fi
 
-if [ $1 = 21.4.5.46-2 ]; then
+if [ $1 = 22.2.2.1 ]; then
     echo "Update the config.xml of $1"
-    sed -i '508, 617d' /etc/clickhouse-server/config.xml
-elif [ $1 = 21.5.5.12-2 ]; then
-    echo "Update the config.xml of $1"
-    sed -i '520, 630d' /etc/clickhouse-server/config.xml
+    sed -i '616, 758d' /etc/clickhouse-server/config.xml
 fi
 
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  's|<!--</remote_url_allow_hosts>-->|<!--</remote_url_allow_hosts>--><include_from>/etc/clickhouse-server/metrika.xml</include_from><remote_servers incl="clickhouse_remote_servers" /><zookeeper incl="zookeeper-servers" optional="true" />|g'
