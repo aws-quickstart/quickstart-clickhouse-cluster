@@ -15,11 +15,11 @@ if [ ! -d "/home/ec2-user/jdk8u292-b10" ]; then
   sudo ln -s /home/ec2-user/java-se-8u41-ri/bin/java /usr/bin/java
 fi
 
-# wget -P ./ http://mirrors.hust.edu.cn/apache/zookeeper/stable/apache-zookeeper-${1}-bin.tar.gz
-wget -P ./ -T 60 https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-${1}/apache-zookeeper-${1}-bin.tar.gz
+# Avoid deployment issues caused by the version of Zookeeper's frequent changes.
+wget -P ./ -T 60 http://archive.apache.org/dist/zookeeper/zookeeper-${1}/apache-zookeeper-${1}-bin.tar.gz
 tar -xvf /home/ec2-user/apache-zookeeper-${1}-bin.tar.gz -C /usr/local/
 if [ ! -d "/usr/local/apache-zookeeper-${1}-bin" ]; then
-  wget -P ./  -T 60 https://downloads.apache.org/zookeeper/zookeeper-${1}/apache-zookeeper-${1}-bin.tar.gz
+  wget -P ./  -T 60 http://archive.apache.org/dist/zookeeper/zookeeper-${1}/apache-zookeeper-${1}-bin.tar.gz
   tar -xvf /home/ec2-user/apache-zookeeper-${1}-bin.tar.gz -C /usr/local/
 fi
 
