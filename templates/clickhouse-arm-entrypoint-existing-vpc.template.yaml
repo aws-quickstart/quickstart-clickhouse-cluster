@@ -230,11 +230,11 @@ Parameters:
     Type: String
   NumBastionHosts: 
     AllowedValues: 
-      - "1"
-      - "2"
-      - "3"
-      - "4"
-    Default: "1"
+      - 1
+      - 2
+      - 3
+      - 4
+    Default: 1
     Description: Enter the number of bastion hosts to create.
     Type: String
   ZookeeperInstanceType: 
