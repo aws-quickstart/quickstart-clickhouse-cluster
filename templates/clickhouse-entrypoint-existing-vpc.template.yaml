@@ -539,7 +539,7 @@ Resources:
     Properties:
       TemplateURL: 
         Fn::Sub:
-            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion-entrypoint-existing-vpc.template.yaml
             - S3Region: !If 
                 - UsingDefaultBucket
                 - !Ref 'AWS::Region'
