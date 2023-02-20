@@ -236,7 +236,7 @@ Parameters:
       - 4
     Default: 1
     Description: Enter the number of bastion hosts to create.
-    Type: String
+    Type: Number
   ZookeeperInstanceType: 
     Description: Amazon EC2 instance type for the Zookeeper nodes.
     Type: String
