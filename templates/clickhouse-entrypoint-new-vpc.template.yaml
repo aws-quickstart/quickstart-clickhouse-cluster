@@ -250,7 +250,7 @@ Parameters:
       - 4
     Default: 1
     Description: Enter the number of bastion hosts to create.
-    Type: Number
+    Type: String
   ZookeeperInstanceType: 
     Description: Amazon EC2 instance type for the ZooKeeper nodes.
     Type: String
@@ -605,11 +605,10 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion-entrypoint-new-vpc.template.yaml'
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion-entrypoint-existing-vpc.template.yaml'
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
-        AvailabilityZones: !Ref AvailabilityZones
         BastionAMIOS: !Ref BastionAMIOS
         BastionInstanceType: !Ref BastionInstanceType
         OSImageOverride: !Ref LatestAmiId
