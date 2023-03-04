@@ -41,9 +41,26 @@ Parameters:
   BastionSecurityGroupID:
     Description: The BastionSecurityGroupID range that is permitted to access.
     Type: String
+Conditions:
+  IsChinaRegion: !Or 
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-north-1
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-northwest-1
+  IsNotChinaRegion: !Not
+    - !Or
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-north-1
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-northwest-1
 Resources:
   ClickHouseServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Condition: IsNotChinaRegion
     Properties:
       GroupDescription: Allow access to ClickHouse port.
       VpcId: !Ref VPCID
@@ -91,6 +108,7 @@ Resources:
         CidrIp: 0.0.0.0/0
   AdminServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Condition: IsNotChinaRegion
     Properties:
       GroupDescription: App server security group.
       VpcId: !Ref VPCID
@@ -112,10 +130,80 @@ Resources:
         FromPort: 0
         ToPort: 65535
         CidrIp: 0.0.0.0/0
+  ClickHouseServerSecurityGroupCN:
+    Type: AWS::EC2::SecurityGroup
+    Condition: IsChinaRegion
+    Properties:
+      GroupDescription: Allow access to ClickHouse port.
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 2181
+        ToPort: 2181
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 2888
+        ToPort: 2888
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 3888
+        ToPort: 3888
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 9000
+        ToPort: 9000
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 9009
+        ToPort: 9009
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 8123
+        ToPort: 8123
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 9116
+        ToPort: 9116
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 9100
+        ToPort: 9100
+        CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  AdminServerSecurityGroupCN:
+    Type: AWS::EC2::SecurityGroup
+    Condition: IsChinaRegion
+    Properties:
+      GroupDescription: App server security group.
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+      - IpProtocol: tcp
+        FromPort: 9090
+        ToPort: 9090
+        CidrIp: !Ref AccessCIDR
+      - IpProtocol: tcp
+        FromPort: 3000
+        ToPort: 3000
+        CidrIp: !Ref AccessCIDR  
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
 Outputs:
   ClickHouseServerSecurityGroup:
     Description: ClickHouse Security Group
-    Value: !Ref ClickHouseServerSecurityGroup
+    Value: !If [IsNotChinaRegion, !Ref ClickHouseServerSecurityGroup, !Ref ClickHouseServerSecurityGroupCN]
   AdminServerSecurityGroup:
     Description: Admin Server Security Group
-    Value: !Ref AdminServerSecurityGroup
+    Value: !If [IsNotChinaRegion, !Ref AdminServerSecurityGroup, !Ref AdminServerSecurityGroupCN]
