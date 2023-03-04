@@ -480,7 +480,7 @@ Parameters:
     - 'small'
     - 'medium'
     - 'none'
-    Default: 'small'
+    Default: 'none'
     Description: "AWS CloudFormation creates a demontration table (OnTime dataset) for you and loads data. You can choose the size of demonstration data (e.g., 'small'100m / / -'medium'3g / / -'large'15g)."
     Type: String
   QSS3BucketName:
