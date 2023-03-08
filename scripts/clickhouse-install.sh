@@ -43,8 +43,8 @@ yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
 yum install clickhouse-server-$1 clickhouse-client-$1 -y
 
 if [ ! -d "/etc/clickhouse-server" ]; then
-    rpm --import https://mirrors.tuna.tsinghua.edu.cn/clickhouse/CLICKHOUSE-KEY.GPG
-    yum-config-manager --add-repo https://mirrors.tuna.tsinghua.edu.cn/clickhouse/rpm/stable/x86_64
+    rpm --import https://mirrors.aliyun.com/clickhouse/CLICKHOUSE-KEY.GPG
+    yum-config-manager --add-repo https://mirrors.aliyun.com/clickhouse/rpm/stable/
     yum install clickhouse-server-$1 clickhouse-client-$1 -y
 fi
 
@@ -291,10 +291,12 @@ then
     done
 fi
 
-if [ $1 = 21.4.5.46-2 ]; then
+# if [ $1 = 21.4.5.46-2 ]; then
+if [ $1 = 21.4.7.3-2 ]; then
     echo "Update the config.xml of $1"
     sed -i '508, 617d' /etc/clickhouse-server/config.xml
-elif [ $1 = 21.5.5.12-2 ]; then
+# elif [ $1 = 21.5.5.12-2 ]; then
+elif [ $1 = 21.5.9.4-2 ]; then
     echo "Update the config.xml of $1"
     sed -i '520, 630d' /etc/clickhouse-server/config.xml
 fi

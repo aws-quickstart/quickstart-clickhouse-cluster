@@ -573,7 +573,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT120M"
   ZookeeperInstance2: 
     Type: AWS::EC2::Instance
     Metadata:
@@ -818,7 +818,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT120M"
   ZookeeperInstance3: 
     Type: AWS::EC2::Instance
     Metadata:
@@ -1065,7 +1065,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT30M"
+        Timeout: "PT120M"
 Outputs:
   ZookeeperInstanceID1:
     Description: ZooKeeper instance

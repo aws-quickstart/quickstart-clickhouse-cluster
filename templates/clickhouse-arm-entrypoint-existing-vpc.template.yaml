@@ -164,7 +164,7 @@ Metadata:
 Parameters:
   VPCID:
     Description: The existing VPC ID.
-    Type: String
+    Type: AWS::EC2::VPC::Id
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
@@ -173,16 +173,16 @@ Parameters:
     Type: String
   PublicSubnet1ID:
     Description: Public subnet 1 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PublicSubnet2ID:
     Description: Public subnet 2 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PrivateSubnet1AID:
     Description: Private subnet 1 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PrivateSubnet2AID:
     Description: Private subnet 2 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   RemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
@@ -230,11 +230,11 @@ Parameters:
     Type: String
   NumBastionHosts: 
     AllowedValues: 
-      - "1"
-      - "2"
-      - "3"
-      - "4"
-    Default: "1"
+      - 1
+      - 2
+      - 3
+      - 4
+    Default: 1
     Description: Enter the number of bastion hosts to create.
     Type: String
   ZookeeperInstanceType: 
@@ -516,7 +516,7 @@ Resources:
     Properties:
       TemplateURL: 
         Fn::Sub:
-            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion-entrypoint-existing-vpc.template.yaml
             - S3Region: !If 
                 - UsingDefaultBucket
                 - !Ref 'AWS::Region'

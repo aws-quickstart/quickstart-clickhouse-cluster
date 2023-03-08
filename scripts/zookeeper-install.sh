@@ -2,11 +2,12 @@
 
 # ${ZookeeperVersion} 1
 
-wget -P ./ -T 60 https://mirrors.tuna.tsinghua.edu.cn/AdoptOpenJDK/8/jdk/x64/linux/OpenJDK8U-jdk_x64_linux_hotspot_8u292b10.tar.gz
-tar -xvf /home/ec2-user/OpenJDK8U-jdk_x64_linux_hotspot_8u292b10.tar.gz
-sudo ln -s /home/ec2-user/jdk8u292-b10/bin/java /usr/local/bin/java
-sudo ln -s /home/ec2-user/jdk8u292-b10/bin/java /usr/bin/java
-if [ ! -d "/home/ec2-user/jdk8u292-b10" ]; then
+#wget -P ./ -T 60 https://mirrors.tuna.tsinghua.edu.cn/AdoptOpenJDK/8/jdk/x64/linux/OpenJDK8U-jdk_x64_linux_hotspot_8u292b10.tar.gz
+wget -P ./ -T 60 https://repo.huaweicloud.com/java/jdk/8u202-b08/jdk-8u202-linux-x64.tar.gz
+tar -xvf /home/ec2-user/jdk-8u202-linux-x64.tar.gz
+sudo ln -s /home/ec2-user/jdk1.8.0_202/bin/java /usr/local/bin/java
+sudo ln -s /home/ec2-user/jdk1.8.0_202/bin/java /usr/bin/java
+if [ ! -d "/home/ec2-user/jdk1.8.0_202" ]; then
   rm -rf /usr/local/bin/java
   rm -rf /usr/bin/java
   wget -P ./ -T 60 https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz

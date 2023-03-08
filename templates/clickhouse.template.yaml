@@ -227,9 +227,12 @@ Parameters:
       - i3.16xlarge
   ClickHouseVersion:
     AllowedValues:
-    - '21.4.5.46-2'
-    - '21.5.5.12-2'
-    Default: '21.4.5.46-2'
+    # - '21.4.5.46-2'
+    # - '21.5.5.12-2'
+    # Default: '21.4.5.46-2'
+    - '21.4.7.3-2'
+    - '21.5.9.4-2'
+    Default: '21.5.9.4-2'
     Description: ClickHouse version (21.4.5 or 21.5.5).
     Type: String
   ClickHouseTimezone:
@@ -544,7 +547,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT60M
+        Timeout: PT120M
       AutoScalingCreationPolicy:
         MinSuccessfulInstancesPercent: 100
     UpdatePolicy:

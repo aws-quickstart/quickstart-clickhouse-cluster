@@ -164,7 +164,7 @@ Metadata:
 Parameters:
   VPCID:
     Description: Existing VPC ID.
-    Type: String
+    Type: AWS::EC2::VPC::Id
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
@@ -173,16 +173,16 @@ Parameters:
     Type: String
   PublicSubnet1ID:
     Description: Public subnet 1 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PublicSubnet2ID:
     Description: Public subnet 2 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PrivateSubnet1AID:
     Description: Private subnet 1 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   PrivateSubnet2AID:
     Description: Private subnet 2 ID.
-    Type: String
+    Type: AWS::EC2::Subnet::Id
   RemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x.
@@ -229,11 +229,11 @@ Parameters:
     Type: String
   NumBastionHosts: 
     AllowedValues: 
-      - "1"
-      - "2"
-      - "3"
-      - "4"
-    Default: "1"
+      - 1
+      - 2
+      - 3
+      - 4
+    Default: 1
     Description: Enter the number of bastion hosts to create.
     Type: String
   ZookeeperInstanceType: 
@@ -352,9 +352,12 @@ Parameters:
       - i3.16xlarge
   ClickHouseVersion:
     AllowedValues:
-    - '21.4.5.46-2'
-    - '21.5.5.12-2'
-    Default: '21.4.5.46-2'
+    # - '21.4.5.46-2'
+    # - '21.5.5.12-2'
+    # Default: '21.4.5.46-2'
+    - '21.4.7.3-2'
+    - '21.5.9.4-2'
+    Default: '21.5.9.4-2'
     Description: ClickHouse version (21.4.5 or 21.5.5).
     Type: String
   ClickHouseTimezone:
@@ -480,7 +483,7 @@ Parameters:
     - 'small'
     - 'medium'
     - 'none'
-    Default: 'small'
+    Default: 'none'
     Description: "AWS CloudFormation creates a demontration table (OnTime dataset) for you and loads data. You can choose the size of demonstration data (e.g., 'small'100m / / -'medium'3g / / -'large'15g)."
     Type: String
   QSS3BucketName:
@@ -529,6 +532,14 @@ Conditions:
       - !Equals 
         - !Ref 'AWS::Region'
         - cn-northwest-1
+  IsNotChinaRegion: !Not
+    - !Or
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-north-1
+      - !Equals 
+        - !Ref 'AWS::Region'
+        - cn-northwest-1
   2NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '2']
   4NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '4'] 
   6NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '6'] 
@@ -536,10 +547,11 @@ Conditions:
 Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
+    Condition: IsNotChinaRegion
     Properties:
       TemplateURL: 
         Fn::Sub:
-            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion-entrypoint-existing-vpc.template.yaml
             - S3Region: !If 
                 - UsingDefaultBucket
                 - !Ref 'AWS::Region'
@@ -581,11 +593,11 @@ Resources:
         AccessCIDR: !Ref AccessCIDR
         VPCID: !Ref VPCID
         VPCCIDR: !Ref VPCCIDR
-        BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        BastionSecurityGroupID: !If [IsChinaRegion, 'no-sg', !GetAtt BastionStack.Outputs.BastionSecurityGroupID]
   ClickHouseSecret:
     Type: 'AWS::SecretsManager::Secret'
     Properties:
-      Name: !Join ['-',['ClickHouseSecret',!GetAtt BastionStack.Outputs.BastionSecurityGroupID]]
+      Name: !Join ['-',['ClickHouseSecret',!GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup]]
       Description: "This secret uses a dynamically generated password."
       GenerateSecretString:
         SecretStringTemplate: '{}'
@@ -596,7 +608,7 @@ Resources:
       Tags:
         -
           Key: AppName
-          Value: !Join ['-',['ClickHouseSecret',!GetAtt BastionStack.Outputs.BastionSecurityGroupID]]
+          Value: !Join ['-',['ClickHouseSecret',!GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup]]
   ZookeeperClusterStack: 
     Type: AWS::CloudFormation::Stack
     Properties: 
@@ -612,7 +624,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        RootStackName: !GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup
         PrivateSubnetID1: !Ref PrivateSubnet1AID
         PrivateSubnetID2: !Ref PrivateSubnet2AID
         KeyPairName: !Ref KeyPairName
@@ -664,7 +676,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        RootStackName: !GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup
         PrivateSubnetID1: !Ref PrivateSubnet1AID
         PrivateSubnetID2: !If
           - UsingSingleAZ 
@@ -715,7 +727,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        RootStackName: !GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup
         PrivateSubnetID1: !Ref PrivateSubnet1AID
         PrivateSubnetID2: !If
           - UsingSingleAZ 
@@ -1074,12 +1086,6 @@ Resources:
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
         AlarmEmail: !Ref AlarmEmail
 Outputs:
-  CloudWatchLogs:
-    Description: CloudWatch Logs GroupName. Your SSH logs will be stored here.
-    Value: !GetAtt BastionStack.Outputs.CloudWatchLogs
-  BastionEIP1:
-    Description: Elastic IP 1 for Bastion
-    Value: !GetAtt BastionStack.Outputs.EIP1
   NetworkLoadBalancer2Nodes:
     Condition: 2NodesCondition
     Description: Network Load Balancer with port 8123 in private subnet 1
