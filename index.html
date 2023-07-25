@@ -865,7 +865,8 @@ p.footer-text a{color:#d7d8d8}
 <li><a href="#_grafana_web_console">Grafana web console</a></li>
 </ul>
 </li>
-<li><a href="#_resources">Resources</a>
+<li><a href="#_troubleshooting">Troubleshooting</a></li>
+<li><a href="#_additional_info">Additional Info</a>
 <ul class="sectlevel2">
 <li><a href="#_clickhouse_server_nodes">ClickHouse server nodes</a></li>
 <li><a href="#_clickhouse_client_nodes">ClickHouse client nodes</a></li>
@@ -873,13 +874,6 @@ p.footer-text a{color:#d7d8d8}
 </ul>
 </li>
 <li><a href="#_clickhouse_resources">ClickHouse resources</a></li>
-<li><a href="#_troubleshooting">Troubleshooting</a></li>
-<li><a href="#_additional_info">Additional Info</a>
-<ul class="sectlevel2">
-<li><a href="#_zookeeper_server_nodes_2">ZooKeeper server nodes</a></li>
-</ul>
-</li>
-<li><a href="#_clickhouse_resources_2">ClickHouse resources</a></li>
 <li><a href="#_customer_responsibility">Customer responsibility</a></li>
 <li><a href="#_feedback">Feedback</a></li>
 <li><a href="#_notices">Notices</a></li>
@@ -1309,8 +1303,26 @@ Run "sudo yum update" to apply all updates.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_resources">Resources</h2>
+<h2 id="_troubleshooting">Troubleshooting</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>For troubleshooting common Partner Solution issues, refer to the <a href="https://fwd.aws/rA69w?" target="_blank" rel="noopener">AWS Partner Solution General Information Guide</a> and <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html" target="_blank" rel="noopener">Troubleshooting CloudFormation</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_additional_info">Additional Info</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Deployment script installation log to troubleshoot error messages: <code>/home/ec2-user/clickhouse-client-install.log</code></p>
+</li>
+<li>
+<p>Grafana web console: <code>/etc/grafana</code></p>
+</li>
+</ul>
+</div>
 <div class="sect2">
 <h3 id="_clickhouse_server_nodes">ClickHouse server nodes</h3>
 <div class="ulist">
@@ -1363,63 +1375,6 @@ Run "sudo yum update" to apply all updates.
 </div>
 <div class="sect1">
 <h2 id="_clickhouse_resources">ClickHouse resources</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://clickhouse.tech/blog/en/2021/reading-from-external-memory/" target="_blank" rel="noopener">A journey to io_uring, AIO and modern storage devices</a></p>
-</li>
-<li>
-<p><a href="https://habr.com/en/company/yandex/blog/457612/" target="_blank" rel="noopener">How to speed up LZ4 decompression in ClickHouse?</a></p>
-</li>
-<li>
-<p><a href="https://clickhouse.tech/blog/en/2021/fuzzing-clickhouse/" target="_blank" rel="noopener">Fuzzing ClickHouse</a></p>
-</li>
-<li>
-<p><a href="https://habr.com/en/company/yandex/blog/485096/" target="_blank" rel="noopener">Five Methods For Database Obfuscation</a></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_troubleshooting">Troubleshooting</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>For troubleshooting common Partner Solution issues, refer to the <a href="https://fwd.aws/rA69w?" target="_blank" rel="noopener">AWS Partner Solution General Information Guide</a> and <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html" target="_blank" rel="noopener">Troubleshooting CloudFormation</a>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_additional_info">Additional Info</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p>Deployment script installation log to troubleshoot error messages: <code>/home/ec2-user/clickhouse-client-install.log</code></p>
-</li>
-<li>
-<p>Grafana web console: <code>/etc/grafana</code></p>
-</li>
-</ul>
-</div>
-<div class="sect2">
-<h3 id="_zookeeper_server_nodes_2">ZooKeeper server nodes</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>Apache ZooKeeper installation directory: <code>/usr/local/apache-zookeeper-3.5.9-bin/</code></p>
-</li>
-<li>
-<p>Deployment script installation logs: <code>/home/ec2-user/zk.log</code></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_clickhouse_resources_2">ClickHouse resources</h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
