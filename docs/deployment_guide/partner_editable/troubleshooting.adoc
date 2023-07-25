@@ -10,11 +10,23 @@ For troubleshooting common Partner Solution issues, refer to the https://fwd.aws
 * Deployment script installation log to troubleshoot error messages: `/home/ec2-user/clickhouse-client-install.log`
 * Grafana web console: `/etc/grafana`
 
+=== ClickHouse server nodes
+
+* ClickHouse server installation directory: `/etc/clickhouse-server`
+* ClickHouse server data directory in local file storage: `/home/clickhouse/data`
+* ClickHouse server data directory in S3 bucket: `clickhouse-data-vpcid`
+* Deployment script installation log to troubleshoot error messages: `/home/ec2-user/ch-install.log`
+
+=== ClickHouse client nodes
+
+* ClickHouse client installation directory: `/etc/clickhouse-client`
+* Deployment script installation log to troubleshoot error messages: `/home/ec2-user/clickhouse-client-install.log`
+* Grafana web console: `/etc/grafana`
+
 === ZooKeeper server nodes
 
 * Apache ZooKeeper installation directory: `/usr/local/apache-zookeeper-3.5.9-bin/`
 * Deployment script installation logs: `/home/ec2-user/zk.log`
-
 
 == {partner-product-short-name} resources
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
