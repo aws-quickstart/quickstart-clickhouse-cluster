@@ -1,0 +1,12 @@
+:quickstart-project-name: quickstart-clickhouse-cluster
+:partner-product-name: ClickHouse Cluster
+:partner-product-short-name: ClickHouse
+:partner-company-name: AWS Great China Region Solution team
+:doc-month: October
+:doc-year: 2021
+:aws-contributors: Wei Qiao, AWS Great China Region Solution team
+:quickstart-contributors: Troy Ameigh, AWS Integration & Automation team
+:deployment_time: 60 minutes
+:default_deployment_region: us-east-1
+:no_parameters:
+//doc

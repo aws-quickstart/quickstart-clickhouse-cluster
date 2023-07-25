@@ -1,0 +1,11 @@
+// Replace the content in <>
+// Briefly describe the software. Use consistent and clear branding. 
+// Include the benefits of using the software on AWS, and provide details on usage scenarios.
+
+ClickHouse is an SQL-based DBMS that customers can use to store, retrieve, and update data. Functions of a DBMS include the following:
+
+* User-defined catalog of metadata
+* Transaction support
+* Database recovery
+* Access management
+* Database constraints

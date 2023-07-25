@@ -1,0 +1,18 @@
+// Replace the <n> in each row to specify the number of resources used in this deployment. Remove the rows for resources that aren’t used.
+|===
+|Resource |This deployment uses
+
+// Space needed to maintain table headers
+|VPCs | 1
+|Elastic IP addresses | 3
+|Security groups | 3
+|AWS Identity and Access Management (IAM) roles | 2
+|Auto Scaling groups | 2
+|Network Load Balancers | 1
+|Amazon CloudWatch dashboard | 1
+|S3 bucket | 1
+|m5.xlarge instances (ClickHouse cluster)| 2
+|m5.xlarge instances (ClickHouse client)| 1
+|m5.large instances (ZooKeeper cluster)| 3
+|t2.micro instances (bastion hosts) | 1
+|===
