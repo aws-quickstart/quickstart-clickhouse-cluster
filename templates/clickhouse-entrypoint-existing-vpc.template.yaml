@@ -343,6 +343,11 @@ Parameters:
       - r5.2xlarge
       - r5.4xlarge
       - r5.8xlarge
+      - r6i.large
+      - r6i.xlarge
+      - r6i.2xlarge
+      - r6i.4xlarge
+      - r6i.8xlarge
       - i3.large
       - i3.xlarge
       - i3.2xlarge
