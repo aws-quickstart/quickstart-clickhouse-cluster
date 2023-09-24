@@ -24,9 +24,15 @@ sleep 1
 
 
 yum install yum-utils
-rpm --import https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG
-yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
-yum install clickhouse-client-$1 -y
+
+if [ $1 = 23.3.8.21 ]; then
+  sudo yum-config-manager --add-repo https://packages.clickhouse.com/rpm/clickhouse.repo
+  sudo yum install clickhouse-client-$1 -y
+else
+  rpm --import https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG
+  sudo yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
+  sudo yum install clickhouse-client-$1 -y
+fi
 sleep 1
 if [ ! -d "/etc/clickhouse-client" ]; then
     echo "Try to download from https://mirrors.tuna.tsinghua.edu.cn/clickhouse/"

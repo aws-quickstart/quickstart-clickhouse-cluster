@@ -50,6 +50,7 @@ Metadata:
       - ClickHouseVolumeType
       - ClickHouseVolumeSize
       - ClickHouseIops
+      - ClickHousePkgS3URI
       - Architecture
       - DistributedProductMode
       - LoadBalancing
@@ -129,6 +130,8 @@ Metadata:
         default: Volume size of ClickHouse nodes
       ClickHouseIops:
         default: IOPS of ClickHouse nodes
+      ClickHousePkgS3URI:
+        default: S3 uri for the bucket that has ClickHouse tgz files, e.g., s3://{YOUR_BUCKET}
       Architecture:
         default: Supported CPU architectures
       DistributedProductMode:
@@ -376,9 +379,14 @@ Parameters:
     # Default: '21.4.5.46-2'
     - '21.4.7.3-2'
     - '21.5.9.4-2'
-    Default: '21.5.9.4-2'
-    Description: ClickHouse version (21.4.5 or 21.5.5).
+    - '23.3.8.21'
+    Default: '23.3.8.21'
+    Description: ClickHouse version (21.4.7, 21.5.9 or 23.3.8.21).
     Type: String
+  ClickHousePkgS3URI:
+    Description: S3 uri for the bucket that has ClickHouse tgz files, e.g., s3://{YOUR_BUCKET}
+    Type: String
+    Default: none
   ClickHouseTimezone:
     Default: 'Asia/Shanghai' #America/Los_Angeles
     Description: ClickHouse time zone.
@@ -766,6 +774,7 @@ Resources:
         ClickHouseTimezone: !Ref ClickHouseTimezone
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseBucketName: !Ref ClickHouseBucket
+        ClickHousePkgS3URI: !Ref ClickHousePkgS3URI
         DeviceName: !Ref ClickHouseDeviceName
         VolumeType: !Ref ClickHouseVolumeType
         VolumeSize: !Ref ClickHouseVolumeSize
