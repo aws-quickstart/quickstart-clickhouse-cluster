@@ -40,31 +40,25 @@ ln -s /home/clickhouse/data/log/ /var/log/clickhouse-server
 
 yum install yum-utils
 
-if [ $1 = 23.3.8.21 ]; then
-  if [ "${20}" != "none" ]; then
-    sudo aws s3 sync ${20} ./ --region $4
-    find clickhouse*.tgz -exec tar -xzvf {} \;
+if [ $1 = 23.3.8.21 ] && [ "${20}" != "none" ]; then
+  sudo aws s3 sync ${20} ./ --region $4
+  find clickhouse*.tgz -exec tar -xzvf {} \;
 
-    sudo clickhouse-common-static-$1/install/doinst.sh
-    pw=""
-    sudo yum install expect -y
-    expect -f - <<-EOF
-      set timeout 10
-      spawn sudo "clickhouse-server-$1/install/doinst.sh"
-      expect "*?assword*"
-      send -- "$pw\r"
-      expect eof
+  sudo clickhouse-common-static-$1/install/doinst.sh
+  pw=""
+  sudo yum install expect -y
+  expect -f - <<-EOF
+    set timeout 10
+    spawn sudo "clickhouse-server-$1/install/doinst.sh"
+    expect "*?assword*"
+    send -- "$pw\r"
+    expect eof
 EOF
-    sudo "clickhouse-client-$1/install/doinst.sh"
-  else
-    sudo yum-config-manager --add-repo https://packages.clickhouse.com/rpm/clickhouse.repo
-    sudo yum install clickhouse-server-$1 clickhouse-client-$1 -y
-  fi
-else
-  rpm --import https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG
-  yum-config-manager --add-repo https://repo.clickhouse.tech/rpm/stable/x86_64
-  yum install clickhouse-server-$1 clickhouse-client-$1 -y
+  sudo "clickhouse-client-$1/install/doinst.sh"
 fi
+
+sudo yum-config-manager --add-repo https://packages.clickhouse.com/rpm/clickhouse.repo
+sudo yum install clickhouse-server-$1 clickhouse-client-$1 -y
 
 if [ ! -d "/etc/clickhouse-server" ]; then
     rpm --import https://mirrors.aliyun.com/clickhouse/CLICKHOUSE-KEY.GPG
