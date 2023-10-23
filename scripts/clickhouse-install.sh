@@ -55,15 +55,15 @@ if [ $1 = 23.3.8.21 ] && [ "${20}" != "none" ]; then
     expect eof
 EOF
   sudo "clickhouse-client-$1/install/doinst.sh"
-fi
+else
+  sudo yum-config-manager --add-repo https://packages.clickhouse.com/rpm/clickhouse.repo
+  sudo yum install clickhouse-server-$1 clickhouse-client-$1 -y
 
-sudo yum-config-manager --add-repo https://packages.clickhouse.com/rpm/clickhouse.repo
-sudo yum install clickhouse-server-$1 clickhouse-client-$1 -y
-
-if [ ! -d "/etc/clickhouse-server" ]; then
-    rpm --import https://mirrors.aliyun.com/clickhouse/CLICKHOUSE-KEY.GPG
-    yum-config-manager --add-repo https://mirrors.aliyun.com/clickhouse/rpm/stable/
-    yum install clickhouse-server-$1 clickhouse-client-$1 -y
+  if [ ! -d "/etc/clickhouse-server" ]; then
+      rpm --import https://mirrors.aliyun.com/clickhouse/CLICKHOUSE-KEY.GPG
+      yum-config-manager --add-repo https://mirrors.aliyun.com/clickhouse/rpm/stable/
+      yum install clickhouse-server-$1 clickhouse-client-$1 -y
+  fi
 fi
 
 echo "<yandex>" >> /etc/clickhouse-server/metrika.xml

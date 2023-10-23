@@ -99,7 +99,7 @@ Metadata:
       ClickHouseBucketName:
         default: ClickHouse bucket name
       ClickHousePkgS3URI:
-        default: S3 uri for the bucket that has ClickHouse tgz files, e.g., s3://{YOUR_BUCKET}
+        default: ClickHouse X86 tgz package storage, e.g., s3://{YOUR_BUCKET}
       MoveFactor:
         default: Move factor
       RootStackName:
@@ -257,7 +257,7 @@ Parameters:
     Description: ClickHouse bucket name.
     Type: String
   ClickHousePkgS3URI:
-    Description: S3 uri for the bucket that has ClickHouse tgz files, e.g., s3://{YOUR_BUCKET}
+    Description: ClickHouse X86 tgz package storage, e.g., s3://{YOUR_BUCKET}
     Type: String
     Default: none
   MoveFactor:

@@ -19,7 +19,7 @@
 # ${MaxDataPartSize} 17
 # ShardNum 18
 # ReplicaNum 19
-# ${SourceCodeStorage} 20
+# ${ClickHousePkgS3URI} 20
 
 sudo useradd -m  -s /bin/bash clickhouse
 passwd clickhouse<<EOF
@@ -51,52 +51,28 @@ chmod +x llvm.sh
 export CC=clang-11
 export CXX=clang++-11
 
-if [ ${20} = github ]; then
-    if [ $4 = cn-north-1 ]; then
-        git config --global url."https://gitee.com".insteadOf https://github.com
-        git clone --recursive https://gitee.com/mirrors/clickhouse.git
-        mv clickhouse ClickHouse
-    elif [ $4 = cn-northwest-1 ]; then
-        git config --global url."https://gitee.com".insteadOf https://github.com
-        git clone --recursive https://gitee.com/mirrors/clickhouse.git
-        mv clickhouse ClickHouse
-    else
-        #git clone --recursive https://github.com/ClickHouse/ClickHouse.git
-        wget https://github.com/ClickHouse/ClickHouse/releases/download/v${1}-lts/ClickHouse_sources_with_submodules.tar.gz
-        tar -xvf ClickHouse_sources_with_submodules.tar.gz
-    fi
+if [ $1 = 23.3.8.21 ] && [ "${20}" != "none" ]; then
+  sudo aws s3 sync ${20} ./ --region $4
+  find clickhouse*.tgz -exec tar -xzvf {} \;
+
+  sudo clickhouse-common-static-$1/install/doinst.sh
+  sudo clickhouse-server-$1/install/doinst.sh
+  sudo clickhouse-client-$1/install/doinst.sh
+
+  mkdir /etc/clickhouse-server/config.d/
+  chown -R clickhouse.clickhouse /etc/clickhouse-server/config.d/
 else
-    aws s3 cp ${20} ./ --region ${4}
-    unzip *.zip
+  sudo apt-get install -y apt-transport-https ca-certificates dirmngr
+  GNUPGHOME=$(mktemp -d)
+  sudo GNUPGHOME="$GNUPGHOME" gpg --no-default-keyring --keyring /usr/share/keyrings/clickhouse-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8919F6BD2B48D754
+  sudo rm -r "$GNUPGHOME"
+  sudo chmod +r /usr/share/keyrings/clickhouse-keyring.gpg
+
+  echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee \
+      /etc/apt/sources.list.d/clickhouse.list
+  sudo apt-get update
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-common-static=${1} clickhouse-server=${1} clickhouse-client=${1}
 fi
-cd ClickHouse
-mkdir build-arm64
-cmake . -Bbuild-arm64 -DUSE_STATIC_LIBRARIES=0 -DSPLIT_SHARED_LIBRARIES=1 -DCLICKHOUSE_SPLIT_BINARY=1
-ninja -C build-arm64 clickhouse > ninja.out
-
-
-
-cd ..
-#wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-$1.tgz
-#wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-$1.tgz
-wget https://repo.yandex.ru/clickhouse/tgz/lts/clickhouse-server-$1.tgz
-wget https://repo.yandex.ru/clickhouse/tgz/lts/clickhouse-client-$1.tgz
-tar -xzvf clickhouse-client-$1.tgz
-tar -xzvf clickhouse-server-$1.tgz
-find /var/lib/clickhouse/clickhouse-server-$1/install/ -name 'doinst.sh' | xargs perl -pi -e  "s|done|done;rm -f /usr/bin/clickhouse-*;cp -r -f /var/lib/clickhouse/ClickHouse/build-arm64/programs/clickhouse-* /usr/bin/|g"
-
-chmod +x clickhouse-client-$1/install/doinst.sh
-chmod +x clickhouse-server-$1/install/doinst.sh
-
-mkdir -p /var/log/clickhouse-server
-chown clickhouse.clickhouse -R /var/log/clickhouse-server
-chown clickhouse.clickhouse -R /var/lib/clickhouse
-
-clickhouse-client-$1/install/doinst.sh
-clickhouse-server-$1/install/doinst.sh
-
-mkdir /etc/clickhouse-server/config.d/
-chown -R clickhouse.clickhouse /etc/clickhouse-server/config.d/
 
 cd /root/
 echo "<yandex>" >> /etc/clickhouse-server/metrika.xml
@@ -342,15 +318,9 @@ then
     done
 fi
 
-if [ $1 = 21.4.5.46 ]; then
+if [ $1 = 23.3.8.21 ]; then
     echo "Update the config.xml of $1"
-    sed -i '508, 617d' /etc/clickhouse-server/config.xml
-elif [ $1 = 21.5.5.12 ]; then
-    echo "Update the config.xml of $1"
-    sed -i '520, 630d' /etc/clickhouse-server/config.xml
-elif [ $1 = 21.8.7.22 ]; then
-    echo "Update the config.xml of $1"
-    sed -i '590, 695d' /etc/clickhouse-server/config.xml
+    sed -i '783, 970d' /etc/clickhouse-server/config.xml
 fi
 
 find /etc/clickhouse-server/ -name 'config.xml' | xargs perl -pi -e  's|<!--</remote_url_allow_hosts>-->|<!--</remote_url_allow_hosts>--><include_from>/etc/clickhouse-server/metrika.xml</include_from><remote_servers incl="clickhouse_remote_servers" /><zookeeper incl="zookeeper-servers" optional="true" />|g'
