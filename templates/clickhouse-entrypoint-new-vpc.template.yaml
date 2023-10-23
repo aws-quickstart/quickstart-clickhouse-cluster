@@ -131,7 +131,7 @@ Metadata:
       ClickHouseIops:
         default: IOPS of ClickHouse nodes
       ClickHousePkgS3URI:
-        default: S3 uri for the bucket that has ClickHouse tgz files, e.g., s3://{YOUR_BUCKET}
+        default: ClickHouse X86 tgz package storage, e.g., s3://{YOUR_BUCKET}
       Architecture:
         default: Supported CPU architectures
       DistributedProductMode:
@@ -384,7 +384,7 @@ Parameters:
     Description: ClickHouse version (21.4.7, 21.5.9 or 23.3.8.21).
     Type: String
   ClickHousePkgS3URI:
-    Description: S3 uri for the bucket that has ClickHouse tgz files, e.g., s3://{YOUR_BUCKET}
+    Description: ClickHouse X86 tgz package storage, e.g., s3://{YOUR_BUCKET}
     Type: String
     Default: none
   ClickHouseTimezone:

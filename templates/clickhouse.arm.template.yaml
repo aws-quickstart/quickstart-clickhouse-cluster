@@ -34,6 +34,7 @@ Metadata:
       - ClickHouseNodeCount
       - SecretId
       - ClickHouseBucketName
+      - ClickHousePkgS3URI
       - MoveFactor
       - RootStackName
       - DeviceName
@@ -52,7 +53,6 @@ Metadata:
       - ZookeeperPrivateIp2
       - ZookeeperPrivateIp3
       - InstanceRoleArn
-      - SourceCodeStorage
     - Label:
         default: ClickHouse operation configuration
       Parameters:
@@ -100,6 +100,8 @@ Metadata:
         default: Number of ClickHouse nodes
       ClickHouseBucketName:
         default: ClickHouse bucket name
+      ClickHousePkgS3URI:
+        default: ClickHouse ARM64 tgz package storage, e.g., s3://{YOUR_BUCKET}
       MoveFactor:
         default: Move factor
       RootStackName:
@@ -146,8 +148,6 @@ Metadata:
         default: Secret id in SecretsManager
       BlockDeviceName:
         default: Device name for BlockDeviceMappings
-      SourceCodeStorage:
-        default: The ClickHouse source code storage
 Parameters: 
   PrivateSubnetID1: 
     Description: Private Subnet 1 ID.
@@ -209,8 +209,8 @@ Parameters:
       - r6g.16xlarge
   ClickHouseVersion:
     AllowedValues:
-      - '21.8.7.22'
-    Default: '21.8.7.22'
+      - '23.3.8.21'
+    Default: '23.3.8.21'
     Description: ClickHouse version.
     Type: String
   ClickHouseTimezone:
@@ -230,6 +230,10 @@ Parameters:
     Default: clickhouse-data
     Description: ClickHouse bucket name.
     Type: String
+  ClickHousePkgS3URI:
+    Description: ClickHouse ARM64 tgz package storage, e.g., s3://{YOUR_BUCKET}
+    Type: String
+    Default: none
   MoveFactor:
     Default: 0.3
     Description: Tiered storage parameter.
@@ -367,10 +371,6 @@ Parameters:
     Type: String
     Default: /dev/sdb
     Description: The device name for BlockDeviceMappings.
-  SourceCodeStorage:
-    Type: String
-    Default: github
-    Description: The ClickHouse source code storage. Support github or s3://bucketname/ClickHouse.zip.
 Mappings:
   AWSRegion2AMI:
     us-east-1:
@@ -485,7 +485,7 @@ Resources:
             - s3:GetIntelligentTieringConfiguration
             - s3:PutIntelligentTieringConfiguration
             - s3:PutLifecycleConfiguration
-            Resource: !Sub arn:${InstanceRoleArn}:s3:::*/*
+            Resource: !Sub arn:${InstanceRoleArn}:s3:::*
           - Effect: Allow
             Action:
             - ec2:CreateTags
@@ -833,33 +833,23 @@ Resources:
             export CC=clang-11
             export CXX=clang++-11
 
-            if [ ${SourceCodeStorage} = github ]; then
-                git clone --recursive https://github.com/ClickHouse/ClickHouse.git
+            if [ ${ClickHouseVersion} = 23.3.8.21 ] && [ "${ClickHousePkgS3URI}" != "none" ]; then
+                sudo aws s3 sync ${ClickHousePkgS3URI} ./ --region ${AWS::Region}
+                find clickhouse*.tgz -exec tar -xzvf {} \;
+
+                sudo clickhouse-common-static-${ClickHouseVersion}/install/doinst.sh
+                sudo clickhouse-client-${ClickHouseVersion}/install/doinst.sh
             else
-                aws s3 cp ${SourceCodeStorage} ./ --region ${AWS::Region}
-                unzip *.zip
+                sudo apt-get install -y apt-transport-https ca-certificates dirmngr
+                GNUPGHOME=$(mktemp -d)
+                sudo GNUPGHOME="$GNUPGHOME" gpg --no-default-keyring --keyring /usr/share/keyrings/clickhouse-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8919F6BD2B48D754
+                sudo rm -r "$GNUPGHOME"
+                sudo chmod +r /usr/share/keyrings/clickhouse-keyring.gpg
+                echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee \
+                    /etc/apt/sources.list.d/clickhouse.list
+                sudo apt-get update
+                sudo DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-common-static=${ClickHouseVersion} clickhouse-client=${ClickHouseVersion}
             fi
-            cd ClickHouse
-            mkdir build-arm64
-            cmake . -Bbuild-arm64 -DUSE_STATIC_LIBRARIES=0 -DSPLIT_SHARED_LIBRARIES=1 -DCLICKHOUSE_SPLIT_BINARY=1
-            ninja -C build-arm64 clickhouse > ninja.out
-
-            cd ..
-            wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-client-${ClickHouseVersion}.tgz
-            wget https://repo.yandex.ru/clickhouse/tgz/stable/clickhouse-server-${ClickHouseVersion}.tgz
-            tar -xzvf clickhouse-client-${ClickHouseVersion}.tgz
-            tar -xzvf clickhouse-server-${ClickHouseVersion}.tgz
-            find /var/lib/clickhouse/clickhouse-server-${ClickHouseVersion}/install/ -name 'doinst.sh' | xargs perl -pi -e  's|done|done;rm -f /usr/bin/clickhouse-*;cp -r -f /var/lib/clickhouse/ClickHouse/build-arm64/programs/clickhouse-* /usr/bin/|g'
-
-            sudo chmod +x clickhouse-client-${ClickHouseVersion}/install/doinst.sh
-            sudo chmod +x clickhouse-server-${ClickHouseVersion}/install/doinst.sh
-
-            mkdir -p /var/log/clickhouse-server
-            sudo chown clickhouse.clickhouse -R /var/log/clickhouse-server
-            sudo chown clickhouse.clickhouse -R /var/lib/clickhouse
-
-            sudo clickhouse-client-${ClickHouseVersion}/install/doinst.sh
-            sudo clickhouse-server-${ClickHouseVersion}/install/doinst.sh
 
             cd /root/
             
@@ -1124,7 +1114,7 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" ${SourceCodeStorage} >> /root/clickhouse-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "01" ${ClickHousePkgS3URI} >> /root/clickhouse-install.log
 
             chmod +r /root/create-table-demo.sql
             flag=600
@@ -1426,7 +1416,7 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "02" ${SourceCodeStorage} >> /root/clickhouse-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize} "01" "02" ${ClickHousePkgS3URI} >> /root/clickhouse-install.log
 
             chmod +r /root/create-table-demo.sql
             flag=600
@@ -1730,7 +1720,7 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" ${SourceCodeStorage} >> /root/clickhouse-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "01" ${ClickHousePkgS3URI} >> /root/clickhouse-install.log
 
             chmod +r /root/create-table-demo.sql
             flag=600
@@ -2033,7 +2023,7 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" ${SourceCodeStorage} >> /root/clickhouse-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "02" "02" ${ClickHousePkgS3URI} >> /root/clickhouse-install.log
 
             chmod +r /root/create-table-demo.sql
             flag=600
@@ -2336,7 +2326,7 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region} 
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" ${SourceCodeStorage} >> /root/clickhouse-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "01" ${ClickHousePkgS3URI} >> /root/clickhouse-install.log
 
             chmod +r /root/create-table-demo.sql
             flag=600
@@ -2639,7 +2629,7 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" ${SourceCodeStorage} >> /root/clickhouse-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "03" "02" ${ClickHousePkgS3URI} >> /root/clickhouse-install.log
 
             chmod +r /root/create-table-demo.sql
             flag=600
@@ -2942,7 +2932,7 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" ${SourceCodeStorage} >> /root/clickhouse-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "01" ${ClickHousePkgS3URI} >> /root/clickhouse-install.log
 
             chmod +r /root/create-table-demo.sql
             flag=600
@@ -3245,7 +3235,7 @@ Resources:
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/clickhouse-arm-install.sh ./ --region ${AWS::Region}
             aws s3 cp s3://${QSS3BucketName}/${QSS3KeyPrefix}scripts/create-table-demo.sql ./ --region ${AWS::Region}
             chmod +x clickhouse-arm-install.sh
-            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" ${SourceCodeStorage} >> /root/clickhouse-install.log
+            ./clickhouse-arm-install.sh ${ClickHouseVersion} ${ClickHouseNodeCount} ${RootStackName} ${AWS::Region} http://s3.${AWS::Region}.${AWS::URLSuffix}/${ClickHouseBucketName}/quickstart-clickhouse-data/ ${MoveFactor} ${ClickHouseTimezone} ${ZookeeperPrivateIp1} ${ZookeeperPrivateIp2} ${ZookeeperPrivateIp3} `python3 ./find-secret.py secretfile ` ${MaxThreads} ${MaxInsertThreads} ${DistributedProductMode} ${MaxMemoryUsage} ${LoadBalancing} ${MaxDataPartSize}  "04" "02" ${ClickHousePkgS3URI} >> /root/clickhouse-install.log
 
             chmod +r /root/create-table-demo.sql
             flag=600

@@ -47,6 +47,7 @@ Metadata:
       - ClickHouseVolumeType
       - ClickHouseVolumeSize
       - ClickHouseIops
+      - ClickHousePkgS3URI
       - Architecture
       - DistributedProductMode
       - LoadBalancing
@@ -57,7 +58,6 @@ Metadata:
       - MaxThreads
       - Port
       - DemoDataSize
-      - SourceCodeStorage
       - LatestAmiId
     - Label:
         default: ClickHouse operation configuration
@@ -127,6 +127,8 @@ Metadata:
         default: Volume size of ClickHouse nodes
       ClickHouseIops:
         default: IOPS of ClickHouse nodes
+      ClickHousePkgS3URI:
+        default: ClickHouse ARM64 tgz package storage, e.g., s3://{YOUR_BUCKET}
       Architecture:
         default: Supported CPU architectures
       DistributedProductMode:
@@ -159,8 +161,6 @@ Metadata:
         default: Alarm email address
       LatestAmiId:
         default: Latest Amazon Linux2 AMI ID
-      SourceCodeStorage:
-        default: The ClickHouse source code storage
 Parameters:
   AvailabilityZones:
     Description: 'List of Availability Zones to use for the subnets in the VPC. Note:
@@ -341,10 +341,14 @@ Parameters:
       - r6g.16xlarge
   ClickHouseVersion:
     AllowedValues:
-      - '21.8.7.22'
-    Default: '21.8.7.22'
+      - '23.3.8.21'
+    Default: '23.3.8.21'
     Description: ClickHouse version.
     Type: String
+  ClickHousePkgS3URI:
+    Description: ClickHouse ARM64 tgz package storage, e.g., s3://{YOUR_BUCKET}
+    Type: String
+    Default: none
   ClickHouseTimezone:
     Default: 'Asia/Shanghai' #America/Los_Angeles
     Description: 'ClickHouse time zone.'
@@ -505,10 +509,6 @@ Parameters:
     ConstraintDescription: Incorrect email address.
     Description: "Email address to notify of operational issues."
     Type: "String"
-  SourceCodeStorage:
-    Type: String
-    Default: github
-    Description: The ClickHouse source code storage. Support github or s3://bucketname/ClickHouse.zip.
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   UsingSingleAZ: !Equals [!Ref SingleAvailableZone, '1az']
@@ -786,6 +786,7 @@ Resources:
         ClickHouseTimezone: !Ref ClickHouseTimezone
         ClickHouseNodeCount: !Ref ClickHouseNodeCount
         ClickHouseBucketName: !Ref ClickHouseBucket
+        ClickHousePkgS3URI: !Ref ClickHousePkgS3URI
         DeviceName: !Ref ClickHouseDeviceName
         VolumeType: !Ref ClickHouseVolumeType
         VolumeSize: !Ref ClickHouseVolumeSize
@@ -807,7 +808,6 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         SecretId: !Ref ClickHouseSecret
-        SourceCodeStorage: !Ref SourceCodeStorage
   Nlb2NodesStack:
     Condition: 2NodesCondition
     Type: AWS::CloudFormation::Stack
