@@ -505,6 +505,14 @@ Conditions:
       - !Equals 
         - !Ref 'AWS::Region'
         - cn-northwest-1
+  IsNotChinaRegion: !Not
+    - !Or
+      - !Equals
+        - !Ref 'AWS::Region'
+        - cn-north-1
+      - !Equals
+        - !Ref 'AWS::Region'
+        - cn-northwest-1
   2NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '2']
   4NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '4'] 
   6NodesCondition: !Equals [!Ref 'ClickHouseNodeCount', '6'] 
@@ -512,6 +520,7 @@ Conditions:
 Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
+    Condition: IsNotChinaRegion
     Properties:
       TemplateURL: 
         Fn::Sub:
@@ -556,11 +565,11 @@ Resources:
         AccessCIDR: !Ref AccessCIDR
         VPCID: !Ref VPCID
         VPCCIDR: !Ref VPCCIDR
-        BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        BastionSecurityGroupID: !If [IsChinaRegion, 'no-sg', !GetAtt BastionStack.Outputs.BastionSecurityGroupID]
   ClickHouseSecret:
     Type: 'AWS::SecretsManager::Secret'
     Properties:
-      Name: !Join ['-',['ClickHouseSecret',!GetAtt BastionStack.Outputs.BastionSecurityGroupID]]
+      Name: !Join ['-',['ClickHouseSecret',!GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup]]
       Description: "This secret has a dynamically generated secret password."
       GenerateSecretString:
         SecretStringTemplate: '{}'
@@ -571,7 +580,7 @@ Resources:
       Tags:
         -
           Key: AppName
-          Value: !Join ['-',['ClickHouseSecret',!GetAtt BastionStack.Outputs.BastionSecurityGroupID]]
+          Value: !Join ['-',['ClickHouseSecret',!GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup]]
   ZookeeperClusterStack: 
     Type: AWS::CloudFormation::Stack
     Properties: 
@@ -587,7 +596,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        RootStackName: !GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup
         PrivateSubnetID1: !Ref PrivateSubnet1AID
         PrivateSubnetID2: !Ref PrivateSubnet2AID
         KeyPairName: !Ref KeyPairName
@@ -639,7 +648,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        RootStackName: !GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup
         PrivateSubnetID1: !Ref PrivateSubnet1AID
         PrivateSubnetID2: !If
           - UsingSingleAZ 
@@ -690,7 +699,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters: 
-        RootStackName: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        RootStackName: !GetAtt SecurityGroupStack.Outputs.ClickHouseServerSecurityGroup
         PrivateSubnetID1: !Ref PrivateSubnet1AID
         PrivateSubnetID2: !If
           - UsingSingleAZ 
@@ -1051,12 +1060,6 @@ Resources:
         ZookeeperInstanceType: !Ref ZookeeperInstanceType
         AlarmEmail: !Ref AlarmEmail
 Outputs:
-  CloudWatchLogs:
-    Description: CloudWatch Logs GroupName. Your SSH logs will be stored here.
-    Value: !GetAtt BastionStack.Outputs.CloudWatchLogs
-  BastionEIP1:
-    Description: Elastic IP 1 for Bastion
-    Value: !GetAtt BastionStack.Outputs.EIP1
   NetworkLoadBalancer2Nodes:
     Condition: 2NodesCondition
     Description: Network Load Balancer with port 8123 in private subnet 1
